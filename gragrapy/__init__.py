@@ -53,17 +53,9 @@ class Plot(object):
                 scl.apply()
 
             for layer in self.layers:
-                aes = Aes.union(layer.geom.default_aes, self.aes, layer.aes)
-
-                # If the aes has a constant, do the scales want to treat it
-                # differently to if the data just has only one value? For
-                # example, Aes(color='col') where data.col has only one value
-                # "black", should maybe be different from
-                # Aes(color=Aes.const('black'))? But maybe that second one
-                # should actually be handled with geom(color='black') instead?
-
-                mapped = aes.map_df(self.data)
-                scaled = scale.Scale.apply_scales(mapped, self.scales)
+                mapped = layer.map_data(self.aes, self.data)
+                scale.Scale.train_scales(mapped, self.scales)
+                scaled = scale.Scale.map_scales(mapped, self.scales)
 
                 statted = layer.stat.transform(scaled)
                 layer.draw(ax, statted)

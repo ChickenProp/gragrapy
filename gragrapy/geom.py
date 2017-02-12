@@ -8,14 +8,12 @@ class Geom(LayerComponent):
     default_stat = 'identity'
     default_aes = Aes()
 
-    def __init__(self, **kwargs):
-        self.params = kwargs
-
     def draw(self, ax, data):
         pass
 
     def make_layer(self):
-        return Layer(geom=self, stat=self.params.get('stat', self.default_stat))
+        return Layer(aes=self.aes, data=self.data, geom=self,
+                     stat=self.params.get('stat', self.default_stat))
 
 
 class GeomPoint(Geom):
@@ -25,8 +23,8 @@ class GeomPoint(Geom):
 point = GeomPoint
 
 class GeomLine(Geom):
-    # ax.plot doesn't support varying colors. To get that to work, I think I need
-    # something like
+    # ax.plot doesn't support varying colors. To get that to work, I think I
+    # need something like
     # http://matplotlib.org/examples/pylab_examples/multicolored_line.html
 
     def draw(self, ax, data):

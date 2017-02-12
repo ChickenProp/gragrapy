@@ -13,6 +13,8 @@ def test_map_df():
     pdtest.assert_frame_equal(gg.Aes(x='foo', y='bar').map_df(df),
                               pd.DataFrame({'x': x, 'y': y}))
 
+    pdtest.assert_frame_equal(gg.Aes().map_df(df), pd.DataFrame({}))
+
 def test_eq():
     assert gg.Aes() == gg.Aes()
     assert gg.Aes(x='foo') == gg.Aes(x='foo')

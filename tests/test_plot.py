@@ -17,9 +17,11 @@ def test_plot():
     # ]).show()
 
     (gg.Plot(iris,
-             gg.Aes(x='Sepal.Length', y='Sepal.Width', color='Species')) + [
+             gg.Aes(x='Sepal.Length', y='Sepal.Width')) + [
         gg.geom.line(color='r'),
-        gg.geom.point,
+        gg.geom.point(gg.Aes(color='Species')),
         gg.scale.color_qual,
         gg.stat.smooth,
+        gg.geom.line(data=pd.DataFrame({'Sepal.Length': [7.0, 7.3],
+                                        'Sepal.Width': [4, 5]}))
     ]).show()

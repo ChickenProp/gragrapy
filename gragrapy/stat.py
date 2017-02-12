@@ -9,14 +9,12 @@ from .layer import Layer, LayerComponent
 class Stat(LayerComponent):
     default_geom = 'point'
 
-    def __init__(self, **kwargs):
-        self.params = kwargs
-
     def transform(self, df):
         pass
 
     def make_layer(self):
-        return Layer(geom=self.params.get('geom', self.default_geom), stat=self)
+        return Layer(aes=self.aes, data=self.data, stat=self,
+                     geom=self.params.get('geom', self.default_geom))
 
 class StatIdentity(Stat):
     def transform(self, df):

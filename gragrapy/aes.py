@@ -25,6 +25,15 @@ class Aes(object):
             return df[col]
 
     def map_df(self, df):
+        # If the aes has a constant, that gets treated the same as if the
+        # dataframe has a constant value. Might scales want to treat it
+        # differently? If so, we'll need to distinguish those results somehow
+        # (not necessarily in this method).
+
+        # For example, Aes(color='col') where df.col has only one value 'black'.
+        # Should that be different from Aes(color=Aes.const('black'))?
+        # Maybe that second one should be handled with geom(color='black')
+        # instead?
         return pd.DataFrame({ k: self.map_col(df, v)
                               for k, v in self.mappings.items() })
 

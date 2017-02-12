@@ -9,3 +9,7 @@ def test_make_layer():
 
     g = gg.geom.Geom(stat='smooth')
     assert g.make_layer() == gg.layer.Layer(geom=g, stat='smooth')
+
+    g = gg.geom.Geom(gg.Aes(x='foo'))
+    assert g.make_layer() == gg.layer.Layer(aes=gg.Aes(x='foo'), geom=g,
+                                            stat='identity')
