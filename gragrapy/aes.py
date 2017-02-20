@@ -42,9 +42,6 @@ class Aes(object):
     def __ne__(self, other):
         return not self == other
 
-    # def __hash__(self):
-    #     return hash(tuple(sorted(self.mappings.items())))
-
     @staticmethod
     def union(*aess):
         """Return an Aes whose mappings are the union of the arguments'

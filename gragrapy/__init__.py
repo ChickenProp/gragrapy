@@ -52,9 +52,6 @@ class Plot(object):
             for scl in self.scales.values():
                 scl.apply()
 
-            # datas = layer.Layer.all_datasets(self.data, self.aes, self.layers)
-            # scale.Scale.train_scales(datas, self.scales)
-
             all_statted = []
             for layer in self.layers:
                 mapped = layer.map_data(self.aes, self.data)

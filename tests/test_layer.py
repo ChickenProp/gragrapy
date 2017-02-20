@@ -65,27 +65,3 @@ def test_map_df():
     pdtest.assert_frame_equal(layer.map_data(gg.Aes(x='foo')),
                               pd.DataFrame({'x': data.foo,
                                             'y': data.bar}))
-
-# def test_all_datasets():
-#     # Note that all_datasets returns them in order, as an implementation
-#     # detail to make testing easier.
-
-#     df1 = mkdf(3, 1, 'a')
-#     df2 = mkdf(5, 1, 'a')
-#     aes1 = gg.Aes(x='a')
-#     aes2 = gg.Aes(y='a')
-
-#     datas = Layer.all_datasets(df1, aes1, [mklayer(), mklayer()])
-#     assert len(datas) == 1
-#     pdtest.assert_frame_equal(datas[0], aes1.map_df(df1))
-
-#     datas = Layer.all_datasets(df1, aes1, [mklayer(), mklayer(data=df2)])
-#     assert len(datas) == 2
-#     pdtest.assert_frame_equal(datas[0], aes1.map_df(df1))
-#     pdtest.assert_frame_equal(datas[1], aes1.map_df(df2))
-
-#     datas = Layer.all_datasets(df1, aes1,
-#                                [mklayer(aes=aes2), mklayer(data=df2)])
-#     assert len(datas) == 2
-#     pdtest.assert_frame_equal(datas[0], mklayer(aes=aes2).map_data(aes1, df1))
-#     pdtest.assert_frame_equal(datas[1], aes1.map_df(df2))

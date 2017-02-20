@@ -56,24 +56,6 @@ class Layer(object):
         from . import stat
         return stat.__dict__[name]
 
-    # @staticmethod
-    # def all_datasets(data, aes, layers):
-    #     """Get all the different datasets used by the `layers`.
-
-    #     Each layer provides a dataset with `map_data`. Every unique dataset is
-    #     returned."""
-    #     # As an implementation detail, the datasets are returned in order of
-    #     # first appearance, to make testing easier.
-    #     datasets = OrderedDict()
-    #     for l in layers:
-    #         l_data = l.default_data(data)
-    #         key = (id(l_data), l.wrap_aes(aes))
-
-    #         if key not in datasets:
-    #             datasets[key] = l.map_data(aes, data)
-
-    #     return datasets.values()
-
     def __eq__(self, other):
         return type(self) is type(other) and other.__dict__ == self.__dict__
     def __ne__(self, other):
