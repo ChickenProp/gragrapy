@@ -14,31 +14,42 @@ class Scale(object):
         """Called when this scale is used in a plot."""
         pass
 
-    def transform(series):
+    def transform(self, series):
         """Initial transformation of data.
 
         This takes place before stats are applied."""
         return series
 
-    def train(series):
+    def train(self, series):
         """Learn the domain of the scale."""
         pass
 
-    def map(series):
+    def map(self, series):
         """Map the series into plot-space."""
         return series
 
     @staticmethod
-    def train_scales(df, scales):
-        for cname in df.columns:
+    def transform_scales(df, scales):
+        def trans_col(col, name):
+            if name in scales:
+                return scales[name].transform(col)
+            return col
+
+        return pd.DataFrame({ cname: trans_col(df[cname], cname)
+                              for cname in df.columns })
+
+    @staticmethod
+    def train_scales(datas, scales):
+        columns = set(c for df in datas for c in df.columns)
+        for cname in columns:
             if cname in scales:
-                scales[cname].train(df[cname])
+                scales[cname].train([ df[cname] for df in datas
+                                      if cname in df ])
 
     @staticmethod
     def map_scales(df, scales):
         def map_col(col, name):
             if name in scales:
-                scales[name].train(col)
                 return scales[name].map(col)
             return col
 
@@ -54,9 +65,9 @@ color_div = ScaleColorDiv
 
 class ScaleColorQual(Scale):
     aes = 'color'
-    def train(self, series):
+    def train(self, cols):
         cmap = matplotlib.cm.get_cmap('Set1')
-        vals = util.sorted_unique(series)
+        vals = util.sorted_unique(pd.concat(cols, ignore_index=True))
         colors = cmap(np.linspace(0, 1, 9))
         self.mapper = dict(zip(vals, colors))
 

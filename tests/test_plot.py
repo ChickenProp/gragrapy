@@ -22,6 +22,8 @@ def test_plot():
         gg.geom.point(gg.Aes(color='Species')),
         gg.scale.color_qual,
         gg.stat.smooth,
-        gg.geom.line(data=pd.DataFrame({'Sepal.Length': [7.0, 7.3],
-                                        'Sepal.Width': [4, 5]}))
+        gg.geom.point(gg.Aes(color='FakeCol'),
+                      data=pd.DataFrame({'Sepal.Length': [7.0, 7.3],
+                                         'Sepal.Width': [4, 5],
+                                         'FakeCol': ['Fake', 'Fake2']}))
     ]).show()

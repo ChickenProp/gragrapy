@@ -52,13 +52,21 @@ class Plot(object):
             for scl in self.scales.values():
                 scl.apply()
 
+            # datas = layer.Layer.all_datasets(self.data, self.aes, self.layers)
+            # scale.Scale.train_scales(datas, self.scales)
+
+            all_statted = []
             for layer in self.layers:
                 mapped = layer.map_data(self.aes, self.data)
-                scale.Scale.train_scales(mapped, self.scales)
-                scaled = scale.Scale.map_scales(mapped, self.scales)
+                scaled1 = scale.Scale.transform_scales(mapped, self.scales)
+                statted = layer.stat.transform(scaled1)
+                all_statted.append(statted)
 
-                statted = layer.stat.transform(scaled)
-                layer.draw(ax, statted)
+            scale.Scale.train_scales(all_statted, self.scales)
+
+            for layer, statted in zip(self.layers, all_statted):
+                scaled2 = scale.Scale.map_scales(statted, self.scales)
+                layer.draw(ax, scaled2)
 
             # Haven't implemented legends yet
             # plt.legend(loc='upper left', bbox_to_anchor=(1, 1))

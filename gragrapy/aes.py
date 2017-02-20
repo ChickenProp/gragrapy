@@ -42,12 +42,16 @@ class Aes(object):
     def __ne__(self, other):
         return not self == other
 
+    # def __hash__(self):
+    #     return hash(tuple(sorted(self.mappings.items())))
+
     @staticmethod
     def union(*aess):
-        """Return an Aes whose mappings are the union of the arguments' mappings.
+        """Return an Aes whose mappings are the union of the arguments'
+        mappings.
 
-        If a mapping is found in both arguments, the one from the second is kept.
-        """
+        If a mapping is found in both arguments, the one from the second is
+        kept."""
         mappings = dict()
         for aes in aess:
             mappings.update(aes.mappings)
