@@ -10,6 +10,7 @@ import matplotlib.cm
 
 from . import layer, geom, scale, stat
 from .aes import Aes
+from .faceter import facet
 
 class Plot(object):
     def __init__(self, data, aes):
@@ -18,6 +19,7 @@ class Plot(object):
 
         self.layers = []
         self.scales = {}
+        self.faceter = faceter.NullFaceter()
 
     def show(self):
         self.make()
@@ -47,26 +49,49 @@ class Plot(object):
         with mpl.rc_context():
             self.apply_theme()
 
-            fig, ax = plt.subplots()
-
             for scl in self.scales.values():
                 scl.apply()
 
+            all_datasets = [ layer.default_data(self.data)
+                             for layer in self.layers ]
+            self.faceter.train(all_datasets)
+            fig, ax_map = self._get_fig_axmap()
+
             all_statted = []
-            for layer in self.layers:
-                mapped = layer.map_data(self.aes, self.data)
-                scaled1 = scale.Scale.transform_scales(mapped, self.scales)
-                statted = layer.stat.transform(scaled1)
-                all_statted.append(statted)
+            for dataset, layer in zip(all_datasets, self.layers):
+                for name, facet in self.faceter.facet(dataset):
+                    mapped = layer.wrap_aes(self.aes).map_df(facet)
+                    scaled1 = scale.Scale.transform_scales(mapped, self.scales)
+                    statted = layer.stat.transform(scaled1)
+                    all_statted.append((ax_map[name], layer, statted))
 
-            scale.Scale.train_scales(all_statted, self.scales)
+            scale.Scale.train_scales([x[2] for x in all_statted], self.scales)
 
-            for layer, statted in zip(self.layers, all_statted):
+            for (ax, layer, statted) in all_statted:
                 scaled2 = scale.Scale.map_scales(statted, self.scales)
                 layer.draw(ax, scaled2)
 
             # Haven't implemented legends yet
             # plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+    def _get_fig_axmap(self):
+        rows, cols = self.faceter.shape()
+
+        fig, axs = plt.subplots(nrows=rows, ncols=cols)
+
+        if rows == cols == 1:
+            # subplots doesn't return a list
+            axs = [axs]
+
+        if rows > 1 and cols > 1:
+            # subplots returns a nested list
+            axs = [a for b in axs for a in b]
+
+        ax_map = dict(zip(self.faceter.facet_names, axs))
+        for name, ax in ax_map.items():
+            ax.set_title(name, fontdict={'fontsize': 10})
+
+        return fig, ax_map
 
     def _copy(self):
         copy = Plot(self.data, self.aes)
@@ -89,6 +114,8 @@ class Plot(object):
             copy.layers.append(other)
         elif isinstance(other, scale.Scale):
             copy.scales[other.aes] = other
+        elif isinstance(other, faceter.Faceter):
+            copy.faceter = other
 
         return copy
 

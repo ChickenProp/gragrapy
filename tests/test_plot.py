@@ -16,14 +16,15 @@ def test_plot():
     #     gg.scale.color_qual
     # ]).show()
 
-    (gg.Plot(iris,
-             gg.Aes(x='Sepal.Length', y='Sepal.Width')) + [
+    fake_data = pd.DataFrame({'Sepal.Length': [7.0, 7.3],
+                              'Sepal.Width': [4, 5],
+                              'FakeCol': ['Fake', 'Fake2']})
+    plot = (gg.Plot(iris, gg.Aes(x='Sepal.Length', y='Sepal.Width')) + [
         gg.geom.line(color='r'),
         gg.geom.point(gg.Aes(color='Species')),
         gg.scale.color_qual,
         gg.stat.smooth,
-        gg.geom.point(gg.Aes(color='FakeCol'),
-                      data=pd.DataFrame({'Sepal.Length': [7.0, 7.3],
-                                         'Sepal.Width': [4, 5],
-                                         'FakeCol': ['Fake', 'Fake2']}))
-    ]).show()
+        gg.geom.point(gg.Aes(color='FakeCol'), data=fake_data)
+    ])
+    plot.show()
+    (plot + gg.facet('Species')).show()
