@@ -5,7 +5,7 @@ import pandas as pd
 
 from .context import gragrapy as gg
 
-iris = gg.data('iris')
+iris = gg.data.iris
 
 def test_plot():
     # Good dataset for when group works
