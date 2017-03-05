@@ -46,8 +46,7 @@ class Plot(object):
         with mpl.rc_context():
             self.apply_theme()
 
-            for scl in self.scales.values():
-                scl.apply()
+            scales = self.scales
 
             all_datasets = [ layer.default_data(self.data)
                              for layer in self.layers ]
@@ -58,14 +57,19 @@ class Plot(object):
             for dataset, layer in zip(all_datasets, self.layers):
                 for name, facet in self.faceter.facet(dataset):
                     mapped = layer.wrap_aes(self.aes).map_df(facet)
-                    scaled1 = scale.Scale.transform_scales(mapped, self.scales)
+                    scales.update(scale.guess_default_scales(mapped, scales))
+
+                    scaled1 = scale.Scale.transform_scales(mapped, scales)
                     statted = layer.stat.transform(scaled1)
                     all_statted.append((ax_map[name], layer, statted))
 
-            scale.Scale.train_scales([x[2] for x in all_statted], self.scales)
+            for scl in scales.values():
+                scl.apply()
+
+            scale.Scale.train_scales([x[2] for x in all_statted], scales)
 
             for (ax, layer, statted) in all_statted:
-                scaled2 = scale.Scale.map_scales(statted, self.scales)
+                scaled2 = scale.Scale.map_scales(statted, scales)
                 layer.draw(ax, scaled2)
 
             # Haven't implemented legends yet
