@@ -4,6 +4,8 @@ from __future__ import (absolute_import, print_function,
 from .layer import Layer, LayerComponent
 from .aes import Aes
 
+import matplotlib.patches as patches
+
 class Geom(LayerComponent):
     default_stat = 'identity'
     default_aes = Aes()
@@ -13,7 +15,8 @@ class Geom(LayerComponent):
 
     def make_layer(self):
         return Layer(aes=self.aes, data=self.data, geom=self,
-                     stat=self.params.get('stat', self.default_stat))
+                     stat=self.params.get('stat', self.default_stat),
+                     params=self.params)
 
 
 class GeomPoint(Geom):
@@ -44,3 +47,17 @@ class GeomSmooth(Geom):
         ax.fill_between(data['x'], data['ymin'], data['ymax'], alpha=0.1)
         ax.plot(data['x'], data['y'])
 smooth = GeomSmooth
+
+class GeomBar(Geom):
+    default_aes = Aes(width=Aes.const(1))
+    def draw(self, ax, data):
+        for _, row in data.iterrows():
+            x = row.x - row.width/2
+            ax.add_patch(patches.Rectangle((x, 0), row.width, row.y,
+                                           fill='black'))
+bar = GeomBar
+
+class GeomHist(GeomBar):
+    default_stat = 'bin'
+
+hist = GeomHist

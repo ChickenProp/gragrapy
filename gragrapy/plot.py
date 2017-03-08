@@ -72,6 +72,11 @@ class Plot(object):
                 scaled2 = scale.Scale.map_scales(statted, scales)
                 layer.draw(ax, scaled2)
 
+                # We need this for geom.bar, which doesn't scale the view
+                # itself. When x and y scales work properly, we probably want to
+                # do something with those instead.
+                ax.autoscale_view()
+
             # Haven't implemented legends yet
             # plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
 

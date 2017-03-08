@@ -6,11 +6,23 @@ from collections import OrderedDict
 from .aes import Aes
 
 class Layer(object):
-    def __init__(self, geom, stat, aes=None, data=None):
+    """A `Layer` is a self-contained part of a plot.
+
+    `geom` and `stat` are required. They can be either instances of their
+        respective classes, or strings to look them up with.
+    `aes` is optional; if provided, it will be mixed in with the plot
+        aesthetics.
+    `data` is optional; if not provided, the plot will supply it.
+    `params` will be passed to the `geom` and `stat`, if they're passed as
+        strings and not as instances."""
+    def __init__(self, geom, stat, aes=None, data=None, params=None):
+        if params is None:
+            params = {}
+
         if isinstance(geom, basestring):
-            geom = Layer.find_geom(geom)()
+            geom = Layer.find_geom(geom)(**params)
         if isinstance(stat, basestring):
-            stat = Layer.find_stat(stat)()
+            stat = Layer.find_stat(stat)(**params)
 
         self.aes = aes or Aes()
         self.data = data

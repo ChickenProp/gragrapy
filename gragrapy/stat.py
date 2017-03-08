@@ -14,7 +14,8 @@ class Stat(LayerComponent):
 
     def make_layer(self):
         return Layer(aes=self.aes, data=self.data, stat=self,
-                     geom=self.params.get('geom', self.default_geom))
+                     geom=self.params.get('geom', self.default_geom),
+                     params=self.params)
 
 class StatIdentity(Stat):
     def transform(self, df):
@@ -32,3 +33,19 @@ class StatSmooth(Stat):
                              'ymin': y - std, 'ymax': y + std})
 
 smooth = StatSmooth
+
+class StatBin(Stat):
+    default_geom = 'hist'
+
+    def transform(self, df):
+        nbins = self.params.get('bins', 10)
+
+        groups, bins = pd.cut(df.x, nbins, retbins=True)
+        mids = pd.Series((bins[1:] + bins[:-1])/2,
+                          index=groups.cat.categories)
+        widths = pd.Series(bins[1:] - bins[:-1],
+                           index=groups.cat.categories)
+        counts = df.groupby(groups).x.count()
+        return pd.DataFrame({'x': mids, 'y': counts, 'width': widths})
+
+bin = StatBin
