@@ -24,15 +24,15 @@ def test_plot():
         gg.stat.smooth,
         gg.geom.point(gg.Aes(color='FakeCol'), data=fake_data)
     ])
-    plot.show()
-    (plot + gg.facet('Species')).show()
+    #plot.show()
+    #(plot + gg.facet('Species')).show()
 
     plot = gg.Plot(iris, gg.Aes(x='Sepal.Length', y='Sepal.Width',
                                 color='Sepal.Length'))
     (plot + [
         gg.geom.line,
         gg.geom.point,
-        gg.stat.smooth
+        gg.stat.smooth,
     ]).show()
 
     # data = pd.DataFrame({'xpos': [2, 3, 5, 6, 9],

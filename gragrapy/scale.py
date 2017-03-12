@@ -106,6 +106,13 @@ class ScaleColorQual(Scale):
     def train(self, cols):
         cmap = matplotlib.cm.get_cmap('Set1')
         vals = util.sorted_unique(pd.concat(cols, ignore_index=True))
+
+        # There's no obvious way to get the number of distinct colors from a
+        # colormap. Looking at cmap._segmentdata might work, but it's hacky.
+        if len(vals) > 9:
+            raise ValueError('Too many distinct values for qualitative color'
+                             ' scale. Need at most 9. Given: %d' % (len(vals),))
+
         colors = cmap(np.linspace(0, 1, 9))
         self.mapper = dict(zip(vals, colors))
 
