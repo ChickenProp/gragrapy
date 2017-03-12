@@ -88,8 +88,16 @@ class Scale(object):
 
 class ScaleColorDiv(Scale):
     aes = 'color'
-    def apply(self):
-        mpl.rcParams['image.cmap'] = 'RdBu' # matplotlib.cm.get_cmap('RdBu')
+    def train(self, cols):
+        self.min = min(c.min() for c in cols)
+        self.max = max(c.max() for c in cols)
+        self.norm = matplotlib.colors.Normalize(self.min, self.max)
+
+    def map(self, series):
+        cm = matplotlib.cm.get_cmap('bwr')
+        normed = self.norm(series)
+        colors = cm(normed)
+        return pd.Series([ tuple(c) for c in colors ])
 
 color_div = ScaleColorDiv
 

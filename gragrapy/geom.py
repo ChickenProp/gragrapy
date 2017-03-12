@@ -1,10 +1,12 @@
 from __future__ import (absolute_import, print_function,
                         unicode_literals, division)
 
+import numpy as np
+import matplotlib.collections as collections
+import matplotlib.patches as patches
+
 from .layer import Layer, LayerComponent
 from .aes import Aes
-
-import matplotlib.patches as patches
 
 class Geom(LayerComponent):
     default_stat = 'identity'
@@ -32,8 +34,15 @@ class GeomLine(Geom):
 
     def draw(self, ax, data):
         data = data.sort_values('x')
-        color = self.params.get('color', 'black')
-        ax.plot(data['x'], data['y'], color=color)
+        color = self.params.get('color', data.get('color', 'black'))
+
+        # We need segments to be a list of single-segment lines, i.e.
+        # [ [p0, p1], [p1, p2], [p2, p3], ... ] where each pn is [xn, yn]
+        points = np.array([data.x, data.y]).T.reshape(-1, 1, 2)
+        segments = np.concatenate((points[:-1], points[1:]), axis=1)
+
+        lc = collections.LineCollection(segments, colors=color)
+        ax.add_collection(lc)
 line = GeomLine
 
 class GeomRibbon(Geom):
