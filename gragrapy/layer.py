@@ -25,6 +25,9 @@ class Layer(object):
             stat = Layer.find_stat(stat)(**params)
 
         self.aes = aes or Aes()
+        # There's no particular reason these two are this way around.
+        self.default_aes = Aes.union(geom.default_aes, stat.default_aes)
+
         self.data = data
         self.geom = geom
         self.stat = stat
@@ -40,7 +43,7 @@ class Layer(object):
 
     def wrap_aes(self, aes):
         """Wrap the `aes` in this layer's default and provided aesthetics."""
-        return Aes.union(self.geom.default_aes, aes, self.aes)
+        return Aes.union(self.default_aes, aes, self.aes)
 
     def map_data(self, aes, default_data=None):
         """Map the Layer's dataset using the aes.
@@ -56,7 +59,7 @@ class Layer(object):
             raise ValueError('Layer.map_data: data must be provided either ' \
                              'in the layer or as an argument.')
 
-        return aes.map_df(data)
+        return aes.map_data(data)
 
     @staticmethod
     def find_geom(name):

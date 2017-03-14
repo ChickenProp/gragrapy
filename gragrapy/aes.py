@@ -13,10 +13,19 @@ class AesConstCol(object):
         return not self == other
 
 class Aes(object):
+    """Aesthetic mapping.
+
+    An Aes takes data supplied to a Layer, and makes it suitable for passing to
+    a Geom or Stat."""
     const = AesConstCol
 
     def __init__(self, **kwargs):
-        self.mappings = kwargs
+        """Args that start with 'stat_' will be used by `map_stat`. Others will
+        be used by `map_data`."""
+        self.mappings = { k: v for k,v in kwargs.items()
+                          if not k.startswith('stat_') }
+        self.stat_mappings = { k[5:]: v for k,v in kwargs.items()
+                               if k.startswith('stat_') }
 
     def map_col(self, df, col):
         if isinstance(col, AesConstCol):
@@ -24,7 +33,12 @@ class Aes(object):
         else:
             return df[col]
 
-    def map_df(self, df):
+    def map_data(self, data):
+        """Convert a DataFrame using the standard mappings.
+
+        Only mapped columns are preserved; e.g. if `self.mappings` is empty,
+        then this returns an empty DataFrame.
+        """
         # If the aes has a constant, that gets treated the same as if the
         # dataframe has a constant value. Might scales want to treat it
         # differently? If so, we'll need to distinguish those results somehow
@@ -34,8 +48,22 @@ class Aes(object):
         # Should that be different from Aes(color=Aes.const('black'))?
         # Maybe that second one should be handled with geom(color='black')
         # instead?
-        return pd.DataFrame({ k: self.map_col(df, v)
+        return pd.DataFrame({ k: self.map_col(data, v)
                               for k, v in self.mappings.items() })
+
+    def map_stat(self, stat):
+        """Convert a DataFrame using the stat mappings.
+
+        The original DataFrame's columns are preserved; e.g. if
+        `self.stat_mappings` is empty, then this returns the original DataFrame.
+        """
+        if not self.stat_mappings:
+            return stat
+
+        copy = stat.copy()
+        for k,v in self.stat_mappings.items():
+            copy[k] = self.map_col(stat, v)
+        return copy
 
     def __eq__(self, other):
         return type(self) is type(other) and other.mappings == self.mappings
@@ -50,6 +78,11 @@ class Aes(object):
         If a mapping is found in both arguments, the one from the second is
         kept."""
         mappings = dict()
+        stat_mappings = dict()
+        ret = Aes()
+
         for aes in aess:
-            mappings.update(aes.mappings)
-        return Aes(**mappings)
+            ret.mappings.update(aes.mappings)
+            ret.stat_mappings.update(aes.stat_mappings)
+
+        return ret

@@ -5,9 +5,11 @@ import numpy as np
 import pandas as pd
 
 from .layer import Layer, LayerComponent
+from .aes import Aes
 
 class Stat(LayerComponent):
     default_geom = 'point'
+    default_aes = Aes()
 
     def transform(self, df):
         pass
@@ -36,6 +38,7 @@ smooth = StatSmooth
 
 class StatBin(Stat):
     default_geom = 'hist'
+    default_aes = Aes(stat_y='weight')
 
     def transform(self, df):
         nbins = self.params.get('bins', 10)
@@ -46,6 +49,7 @@ class StatBin(Stat):
         widths = pd.Series(bins[1:] - bins[:-1],
                            index=groups.cat.categories)
         counts = df.groupby(groups).x.count()
-        return pd.DataFrame({'x': mids, 'y': counts, 'width': widths})
+
+        return pd.DataFrame({'x': mids, 'weight': counts, 'width': widths})
 
 bin = StatBin

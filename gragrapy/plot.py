@@ -56,20 +56,22 @@ class Plot(object):
             all_statted = []
             for dataset, layer in zip(all_datasets, self.layers):
                 for name, facet in self.faceter.facet(dataset):
-                    mapped = layer.wrap_aes(self.aes).map_df(facet)
-                    scales.update(scale.guess_default_scales(mapped, scales))
+                    aes = layer.wrap_aes(self.aes)
+                    mapped1 = aes.map_data(facet)
+                    scales.update(scale.guess_default_scales(mapped1, scales))
 
-                    scaled1 = scale.Scale.transform_scales(mapped, scales)
+                    scaled1 = scale.Scale.transform_scales(mapped1, scales)
                     statted = layer.stat.transform(scaled1)
-                    all_statted.append((ax_map[name], layer, statted))
+                    mapped2 = aes.map_stat(statted)
+                    all_statted.append((ax_map[name], layer, mapped2))
 
             for scl in scales.values():
                 scl.apply()
 
             scale.Scale.train_scales([x[2] for x in all_statted], scales)
 
-            for (ax, layer, statted) in all_statted:
-                scaled2 = scale.Scale.map_scales(statted, scales)
+            for (ax, layer, mapped2) in all_statted:
+                scaled2 = scale.Scale.map_scales(mapped2, scales)
                 layer.draw(ax, scaled2)
 
                 # We need this for geom.bar, which doesn't scale the view
