@@ -53,17 +53,23 @@ class Plot(object):
             self.faceter.train(all_datasets)
             fig, ax_map = self._get_fig_axmap()
 
-            all_statted = []
+            all_mapped = []
             for dataset, layer in zip(all_datasets, self.layers):
                 for name, facet in self.faceter.facet(dataset):
                     aes = layer.wrap_aes(self.aes)
                     mapped1 = aes.map_data(facet)
+                    all_mapped.append((ax_map[name], layer, mapped1))
+
                     scales.update(scale.guess_default_scales(mapped1, scales))
 
-                    scaled1 = scale.Scale.transform_scales(mapped1, scales)
-                    statted = layer.stat.transform(scaled1)
-                    mapped2 = aes.map_stat(statted)
-                    all_statted.append((ax_map[name], layer, mapped2))
+            all_statted = []
+            for (ax, layer, mapped1) in all_mapped:
+                scaled1 = scale.Scale.transform_scales(mapped1, scales)
+
+                self._add_group(scaled1, scales)
+                statted = layer.stat.transform(scaled1)
+                mapped2 = aes.map_stat(statted)
+                all_statted.append((ax, layer, mapped2))
 
             for scl in scales.values():
                 scl.apply()
@@ -100,6 +106,16 @@ class Plot(object):
             ax.set_title(name, fontdict={'fontsize': 10})
 
         return fig, ax_map
+
+    def _add_group(self, data, scales):
+        if 'group' in data:
+            return
+
+        cols = tuple(k for k,v in scales.items()
+                     if k in data and v.level == scale.Level.DISCRETE)
+        groups = data.apply(lambda row: repr(tuple(row[c] for c in cols)),
+                            axis=1)
+        data['group'] = groups
 
     def _copy(self):
         copy = Plot(self.data, self.aes)

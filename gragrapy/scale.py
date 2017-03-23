@@ -88,6 +88,8 @@ class Scale(object):
 
 class ScaleColorDiv(Scale):
     aes = 'color'
+    level = Level.CONTINUOUS
+
     def train(self, cols):
         self.min = min(c.min() for c in cols)
         self.max = max(c.max() for c in cols)
@@ -103,6 +105,8 @@ color_div = ScaleColorDiv
 
 class ScaleColorQual(Scale):
     aes = 'color'
+    level = Level.DISCRETE
+
     def train(self, cols):
         cmap = matplotlib.cm.get_cmap('Set1')
         vals = util.sorted_unique(pd.concat(cols, ignore_index=True))

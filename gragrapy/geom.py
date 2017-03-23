@@ -13,6 +13,11 @@ class Geom(LayerComponent):
     default_aes = Aes()
 
     def draw(self, ax, data):
+        grouped = data.groupby('group')
+        for name, group in grouped:
+            self.draw_group(ax, group)
+
+    def draw_group(self, ax, data):
         pass
 
     def make_layer(self):
@@ -32,7 +37,7 @@ class GeomLine(Geom):
     # need something like
     # http://matplotlib.org/examples/pylab_examples/multicolored_line.html
 
-    def draw(self, ax, data):
+    def draw_group(self, ax, data):
         data = data.sort_values('x')
         color = self.params.get('color', data.get('color', 'black'))
 
@@ -52,7 +57,7 @@ class GeomRibbon(Geom):
 ribbon = GeomRibbon
 
 class GeomSmooth(Geom):
-    def draw(self, ax, data):
+    def draw_group(self, ax, data):
         ax.fill_between(data['x'], data['ymin'], data['ymax'], alpha=0.1)
         ax.plot(data['x'], data['y'])
 smooth = GeomSmooth

@@ -8,12 +8,12 @@ from .context import gragrapy as gg
 iris = gg.data.iris
 
 def test_plot():
-    # Good dataset for when group works
-    # (gg.Plot(gg.data('ChickWeight'),
-    #          gg.Aes(x='Time', y='weight', color='Diet', group='Chick'))) + [
-    #     gg.geom.point,
-    #     gg.geom.line,
-    # ]).show()
+    (gg.Plot(gg.data.ChickWeight,
+             gg.Aes(x='Time', y='weight', color='Diet')) + [
+        gg.geom.point,
+        gg.geom.line(gg.Aes(group='Chick')),
+        gg.stat.smooth(geom='line'),
+    ]).show()
 
     fake_data = pd.DataFrame({'Sepal.Length': [7.0, 7.3],
                               'Sepal.Width': [4, 5],

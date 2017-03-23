@@ -4,6 +4,11 @@ from __future__ import (absolute_import, print_function,
 import pandas as pd
 
 def sorted_unique(series):
+    """Return a sorted list of the unique values in `series`."""
     # This handles Categorical data types, which sorted(series.unique()) fails
     # on. series.drop_duplicates() is slower than Series(series.unique()).
     return list(pd.Series(series.unique()).sort_values())
+
+def single_value_columns(df):
+    """Return a list of the columns in `df` that have only one value."""
+    return { col: df[col].iloc[0] for col in df if df[col].nunique() == 1 }
