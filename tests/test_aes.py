@@ -6,40 +6,7 @@ import pandas.util.testing as pdtest
 import pytest
 
 from .context import gragrapy as gg
-
-def assert_data_equal(l, r):
-    """Check whether DataFrames l and r are equal for gragrapy's purposes."""
-    # pandas bug: assert_frame_equal doesn't check shapes properly.
-    # Fixed upstream, but not released as of 2017-03-14.
-    # (Fixed in pandas commit 55eccd9 on 2017-02-27.)
-    assert l.shape == r.shape
-
-    # check_like allows columns to be reordered, and inferred column types to be
-    # different (needed in case of str/unicode ambiguity).
-    pdtest.assert_frame_equal(l, r, check_like=True)
-
-def test_assert_data_equal():
-    x = range(10)
-    y = range(10, 20)
-    z = range(20, 30)
-
-    assert_data_equal(pd.DataFrame(zip(x, y), columns=list('xy')),
-                      pd.DataFrame(zip(x, y), columns=list('xy')))
-
-    assert_data_equal(pd.DataFrame(zip(x, y), columns=list('xy')),
-                      pd.DataFrame(zip(y, x), columns=list('yx')))
-
-    with pytest.raises(AssertionError):
-        assert_data_equal(pd.DataFrame(zip(x, y), columns=list('xy')),
-                          pd.DataFrame(zip(x, y, z), columns=list('xyz')))
-
-    with pytest.raises(AssertionError):
-        l = pd.DataFrame(zip(x, y), columns=list('xy'))
-        r = pd.DataFrame(zip(x), columns=list('x'))
-        assert_data_equal(l, r)
-
-
-
+from . import assert_data_equal
 
 def test_map_data():
     x = range(10)
