@@ -18,7 +18,13 @@ class Geom(LayerComponent):
             self.draw_group(ax, group)
 
     def draw_group(self, ax, data):
-        pass
+        # If draw has been overridden but draw_group hasn't, then drawing a
+        # single group probably works like drawing the whole dataset. This lets
+        # callers not worry which to use.
+        if self.__class__.draw != Geom.draw:
+            self.draw(ax, data)
+        else:
+            raise NotImplementedError()
 
     def make_layer(self):
         return Layer(aes=self.aes, data=self.data, geom=self,
@@ -52,14 +58,25 @@ line = GeomLine
 
 class GeomRibbon(Geom):
     def draw(self, ax, data):
-        color = self.params.get('color', data.get('color'), 'black')
-        ax.fill_between(data['x'], data['ymin'], data['ymax'], color=color)
+        alpha = self.params.get('alpha', 1)
+        color = self.params.get('color', data.get('color', 'black'))
+
+        ax.fill_between(data['x'], data['ymin'], data['ymax'],
+                        color=color, alpha=alpha)
 ribbon = GeomRibbon
 
 class GeomSmooth(Geom):
+    def __init__(self, aes=None, data=None, **params):
+        Geom.__init__(self, aes, data, **params)
+
+        self.geom_line = line(aes, data, **params)
+
+        ribbon_params = dict(params, color='black', alpha=0.1)
+        self.geom_ribbon = ribbon(aes, data, **ribbon_params)
+
     def draw_group(self, ax, data):
-        ax.fill_between(data['x'], data['ymin'], data['ymax'], alpha=0.1)
-        ax.plot(data['x'], data['y'])
+        self.geom_ribbon.draw_group(ax, data)
+        self.geom_line.draw_group(ax, data)
 smooth = GeomSmooth
 
 class GeomBar(Geom):

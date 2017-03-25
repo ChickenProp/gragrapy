@@ -11,8 +11,8 @@ def test_plot():
     (gg.Plot(gg.data.ChickWeight,
              gg.Aes(x='Time', y='weight', color='Diet')) + [
         gg.geom.point,
-        gg.geom.line(gg.Aes(group='Chick')),
-        gg.stat.smooth(geom='line'),
+        #gg.geom.line(gg.Aes(group='Chick')),
+        gg.stat.smooth,
     ]).show()
 
     fake_data = pd.DataFrame({'Sepal.Length': [7.0, 7.3],
