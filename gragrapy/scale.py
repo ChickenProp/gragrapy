@@ -99,7 +99,7 @@ class ScaleColorDiv(Scale):
         cm = matplotlib.cm.get_cmap('bwr')
         normed = self.norm(series)
         colors = cm(normed)
-        return pd.Series([ tuple(c) for c in colors ])
+        return pd.Series([ tuple(c) for c in colors ], index=series.index)
 
 color_div = ScaleColorDiv
 
