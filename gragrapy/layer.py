@@ -3,6 +3,8 @@ from __future__ import (absolute_import, print_function,
 
 from collections import OrderedDict
 
+import six
+
 from .aes import Aes
 
 class Layer(object):
@@ -19,9 +21,9 @@ class Layer(object):
         if params is None:
             params = {}
 
-        if isinstance(geom, basestring):
+        if isinstance(geom, six.string_types):
             geom = Layer.find_geom(geom)(**params)
-        if isinstance(stat, basestring):
+        if isinstance(stat, six.string_types):
             stat = Layer.find_stat(stat)(**params)
 
         self.aes = aes or Aes()

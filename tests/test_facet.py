@@ -6,7 +6,7 @@ from .context import gragrapy as gg
 import pandas as pd
 
 def mkfacetdf(groups):
-    return pd.DataFrame({'Group': groups * 3,
+    return pd.DataFrame({'Group': list(groups) * 3,
                          'Val': range(len(groups) * 3)})
 
 def test_facet():
