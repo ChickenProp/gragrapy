@@ -65,6 +65,11 @@ class Aes(object):
             copy[k] = self.map_col(stat, v)
         return copy
 
+    def scale_names(self):
+        d = dict(self.mappings)
+        d.update(self.stat_mappings)
+        return d
+
     def __eq__(self, other):
         return type(self) is type(other) and other.mappings == self.mappings
     def __ne__(self, other):

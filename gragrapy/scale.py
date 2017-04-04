@@ -4,10 +4,12 @@ from __future__ import (absolute_import, print_function,
 from enum import Enum
 import numbers
 import warnings
+from collections import OrderedDict
 
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import matplotlib.cm
 
 from . import util
@@ -86,6 +88,9 @@ class Scale(object):
         return pd.DataFrame({ cname: map_col(df[cname], cname)
                               for cname in df.columns })
 
+    def get_legend(self):
+        pass
+
 class ScaleColorDiv(Scale):
     aes = 'color'
     level = Level.CONTINUOUS
@@ -100,6 +105,12 @@ class ScaleColorDiv(Scale):
         normed = self.norm(series)
         colors = cm(normed)
         return pd.Series([ tuple(c) for c in colors ], index=series.index)
+
+    def get_legend(self):
+        vals = pd.Series(np.linspace(self.min, self.max, 5))
+        colors = self.map(vals)
+        return [ mpl.patches.Patch(color=c, label=v)
+                 for c,v in zip(colors, vals) ]
 
 color_div = ScaleColorDiv
 
@@ -118,10 +129,15 @@ class ScaleColorQual(Scale):
                              ' scale. Need at most 9. Given: %d' % (len(vals),))
 
         colors = cmap(np.linspace(0, 1, 9))
-        self.mapper = dict(zip(vals, colors))
+        # Has to be an ordered dict for legend to give the correct ordering
+        self.mapper = OrderedDict(zip(vals, colors))
 
     def map(self, series):
         return series.map(self.mapper)
+
+    def get_legend(self):
+        return [ mpl.patches.Patch(color=v, label=k)
+                 for k, v in self.mapper.items() ]
 
 color_qual = ScaleColorQual
 

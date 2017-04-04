@@ -47,6 +47,7 @@ class Plot(object):
             self.apply_theme()
 
             scales = self.scales
+            scale_names = {}
 
             all_datasets = [ layer.default_data(self.data)
                              for layer in self.layers ]
@@ -57,6 +58,8 @@ class Plot(object):
             for dataset, layer in zip(all_datasets, self.layers):
                 for name, facet in self.faceter.facet(dataset):
                     aes = layer.wrap_aes(self.aes)
+                    scale_names.update(aes.scale_names())
+
                     mapped1 = aes.map_data(facet)
                     all_mapped.append((ax_map[name], layer, mapped1))
 
@@ -85,8 +88,19 @@ class Plot(object):
                 # do something with those instead.
                 ax.autoscale_view()
 
-            # Haven't implemented legends yet
-            # plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+            # Names from the plot aes should take priority over others.
+            scale_names.update(self.aes.scale_names())
+
+            if 'color' in scales:
+                plt.subplots_adjust(right=0.8)
+                legend = scales['color'].get_legend()
+                # This needs to consider aeses other than self.aes, and also
+                # stat_mappings.
+                scale_name = scale_names['color']
+                blank = mpl.patches.Patch(fill=False, label=scale_name)
+                plt.legend(handles=[blank] + legend,
+                           loc='upper left',
+                           bbox_to_anchor=(1, 1))
 
     def _get_fig_axmap(self):
         rows, cols = self.faceter.shape()
