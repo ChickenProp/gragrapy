@@ -42,6 +42,15 @@ class Level(Enum):
 
 class Scale(object):
     aes = None
+
+    def __init__(self, *args, **kwargs):
+        self.init(*args, **kwargs)
+        self.args = args
+        self.kwargs = kwargs
+
+    def init(self):
+        pass
+
     def apply(self):
         """Called when this scale is used in a plot."""
         pass
@@ -60,10 +69,13 @@ class Scale(object):
         """Map the series into plot-space."""
         return series
 
+    def copy(self):
+        return self.__class__(*self.args, **self.kwargs)
+
     @staticmethod
-    def transform_scales(df, scales):
+    def transform_scales(df, scales, columns=None):
         def trans_col(col, name):
-            if name in scales:
+            if name in scales and (columns is None or name in columns):
                 return scales[name].transform(col)
             return col
 
@@ -91,6 +103,74 @@ class Scale(object):
     def get_legend(self):
         pass
 
+class ScaleCartesianContinuous(Scale):
+    level = Level.CONTINUOUS
+
+    def init(self, domain=None):
+        self.domain = domain
+
+    def train(self, cols):
+        if self.domain:
+            self.min, self.max = self.domain
+        else:
+            self.min = min(c.min() for c in cols)
+            self.max = max(c.max() for c in cols)
+
+class ScaleCartesianDiscrete(Scale):
+    level = Level.DISCRETE
+
+    def init(self, labels=None):
+        self.labels = labels
+
+    def train(self, cols):
+        vals = util.sorted_unique(pd.concat(cols, ignore_index=True))
+        self.mapper = OrderedDict((v, i) for i,v in enumerate(vals))
+
+    def map(self, series):
+        return series.map(self.mapper)
+
+class ScaleXContinuous(ScaleCartesianContinuous):
+    aes = 'x'
+
+    def apply_ax(self, ax):
+        if self.domain:
+            ax.set_xlim(self.min, self.max)
+        else:
+            ax.autoscale_view(scaley=False)
+
+class ScaleXDiscrete(ScaleCartesianDiscrete):
+    aes = 'x'
+
+    def apply_ax(self, ax):
+        ax.autoscale_view(scaley=False)
+        ax.set_xticks(range(len(self.mapper)))
+        ax.set_xticklabels(self.labels or list(self.mapper))
+
+class x(object):
+    continuous = ScaleXContinuous
+    discrete = ScaleXDiscrete
+
+class ScaleYContinuous(ScaleCartesianContinuous):
+    aes = 'y'
+
+    def apply_ax(self, ax):
+        if self.domain:
+            ax.set_ylim(self.min, self.max)
+        else:
+            ax.autoscale_view(scalex=False)
+
+class ScaleYDiscrete(ScaleCartesianDiscrete):
+    aes = 'y'
+
+    def apply_ax(self, ax):
+        ax.autoscale_view(scalex=False)
+        ax.set_yticks(range(len(self.mapper)))
+        ax.set_yticklabels(self.labels or list(self.mapper))
+
+class y(object):
+    continuous = ScaleYContinuous
+    discrete = ScaleYDiscrete
+
 class ScaleColorDiv(Scale):
     aes = 'color'
     level = Level.CONTINUOUS
@@ -111,8 +191,6 @@ class ScaleColorDiv(Scale):
         colors = self.map(vals)
         return [ mpl.patches.Patch(color=c, label=v)
                  for c,v in zip(colors, vals) ]
-
-color_div = ScaleColorDiv
 
 class ScaleColorQual(Scale):
     aes = 'color'
@@ -139,11 +217,15 @@ class ScaleColorQual(Scale):
         return [ mpl.patches.Patch(color=v, label=k)
                  for k, v in self.mapper.items() ]
 
-color_qual = ScaleColorQual
-
 class color(object):
     div = ScaleColorDiv
     qual = ScaleColorQual
+
+default_scales = {
+    'x': (x.continuous, x.discrete),
+    'y': (y.continuous, y.discrete),
+    'color': (color.div, color.qual),
+}
 
 def guess_default_scales(dataset, existing_scales):
     """If `dataset` has columns with no scales, guess some scales to use for
@@ -151,11 +233,16 @@ def guess_default_scales(dataset, existing_scales):
 
     Return a dict of new scales (with no keys in common with `existing_scales`).
     """
-    if 'color' in dataset and 'color' not in existing_scales:
-        color_level = Level.guess_series_level(dataset.color)
-        if color_level == Level.CONTINUOUS:
-            return { 'color': color.div() }
-        else:
-            return { 'color': color.qual() }
+    wanted_scales = set(dataset.columns) - set(existing_scales)
+    ret = {}
 
-    return {}
+    for scl in wanted_scales.intersection(set(default_scales)):
+        level = Level.guess_series_level(dataset[scl])
+        if level == Level.CONTINUOUS:
+            default = default_scales[scl][0]
+        else:
+            default = default_scales[scl][1]
+        if default is not None:
+            ret[scl] = default()
+
+    return ret

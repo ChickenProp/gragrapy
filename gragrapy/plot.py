@@ -46,7 +46,7 @@ class Plot(object):
         with mpl.rc_context():
             self.apply_theme()
 
-            scales = self.scales
+            scales = { k: v.copy() for k, v in self.scales.items() }
             scale_names = {}
 
             all_datasets = [ layer.default_data(self.data)
@@ -71,22 +71,35 @@ class Plot(object):
 
                 self._add_group(scaled1, scales)
                 statted = layer.stat.transform(scaled1)
-                mapped2 = aes.map_stat(statted)
-                all_statted.append((ax, layer, mapped2))
 
-            for scl in scales.values():
-                scl.apply()
+                mapped2 = aes.map_stat(statted)
+                stat_cols = set(aes.stat_mappings)
+
+                # We need to re-transform some columns. Consider geom.histogram
+                # plus scale.y.sqrt: the y column wasn't in the original data,
+                # so it hasn't been transformed, so we need to do so now.
+                #   ggplot2's approach is to re-transform anything that comes
+                # from a computed aes. That doesn't always work (consider:
+                # aes(stat_ymin='y'), stat.smooth, scale.x.sqrt; ymin will get
+                # sqrted twice), but it's a good start.
+                #   In future, maybe let stats choose whether re-transformation
+                # happens. I'm not sure if that has other edge cases. (It's what
+                # ggplot2 looks like it's set up to do, but no scales disable
+                # re-transformation.)
+
+                scales.update(scale.guess_default_scales(mapped2, scales))
+                scaled2 = scale.Scale.transform_scales(mapped2, scales,
+                                                       columns=stat_cols)
+                all_statted.append((ax, layer, scaled2))
 
             scale.Scale.train_scales([x[2] for x in all_statted], scales)
 
-            for (ax, layer, mapped2) in all_statted:
-                scaled2 = scale.Scale.map_scales(mapped2, scales)
-                layer.draw(ax, scaled2)
+            for (ax, layer, scaled2) in all_statted:
+                scaled3 = scale.Scale.map_scales(scaled2, scales)
+                layer.draw(ax, scaled3)
 
-                # We need this for geom.bar, which doesn't scale the view
-                # itself. When x and y scales work properly, we probably want to
-                # do something with those instead.
-                ax.autoscale_view()
+                scales['x'].apply_ax(ax)
+                scales['y'].apply_ax(ax)
 
             # Names from the plot aes should take priority over others.
             scale_names.update(self.aes.scale_names())

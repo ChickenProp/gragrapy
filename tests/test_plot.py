@@ -33,12 +33,15 @@ def test_plot():
         gg.geom.line,
         gg.geom.point,
         gg.stat.smooth,
+        gg.scale.x.continuous((3, 9)),
+        gg.scale.y.continuous((1, 8)),
     ]).show()
 
-    data = pd.DataFrame({'xpos': [2, 3, 5, 6, 9],
+    data = pd.DataFrame({'xpos': 'a b c d e'.split(),
                          'height': [1, 7, 2, 5, 3]})
     (gg.Plot(data, gg.Aes(x='xpos', y='height')) + [
-        gg.geom.bar
+        gg.geom.bar,
+        gg.scale.x.discrete(labels='foo bar baz bletch quux'.split())
     ]).show()
 
     import numpy as np
