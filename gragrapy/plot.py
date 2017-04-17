@@ -98,8 +98,11 @@ class Plot(object):
                 scaled3 = scale.Scale.map_scales(scaled2, scales)
                 layer.draw(ax, scaled3)
 
-                scales['x'].apply_ax(ax)
-                scales['y'].apply_ax(ax)
+            x_scale = next(s for s in scales.values() if 'x' in s.aes)
+            y_scale = next(s for s in scales.values() if 'y' in s.aes)
+            for ax in ax_map.values():
+                x_scale.apply_ax(ax)
+                y_scale.apply_ax(ax)
 
             # Names from the plot aes should take priority over others.
             scale_names.update(self.aes.scale_names())
@@ -164,7 +167,7 @@ class Plot(object):
         elif isinstance(other, layer.Layer):
             copy.layers.append(other)
         elif isinstance(other, scale.Scale):
-            copy.scales[other.aes] = other
+            copy.scales[other.__class__.__name__] = other
         elif isinstance(other, faceter.Faceter):
             copy.faceter = other
 

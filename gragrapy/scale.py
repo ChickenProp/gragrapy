@@ -12,7 +12,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm
 
-from . import util
+from . import util, transform
 
 class Level(Enum):
     DISCRETE = 1
@@ -73,7 +73,17 @@ class Scale(object):
         return self.__class__(*self.args, **self.kwargs)
 
     @staticmethod
+    def _column_scales(df, scales):
+        ret = {}
+        for scale in scales.values():
+            for colname in scale.aes:
+                if colname in df.columns:
+                    ret[colname] = scale
+        return ret
+
+    @staticmethod
     def transform_scales(df, scales, columns=None):
+        scales = Scale._column_scales(df, scales)
         def trans_col(col, name):
             if name in scales and (columns is None or name in columns):
                 return scales[name].transform(col)
@@ -84,14 +94,15 @@ class Scale(object):
 
     @staticmethod
     def train_scales(datas, scales):
-        columns = set(c for df in datas for c in df.columns)
-        for cname in columns:
-            if cname in scales:
-                scales[cname].train([ df[cname] for df in datas
-                                      if cname in df ])
+        for scale in scales.values():
+            scale.train([ df[col]
+                          for df in datas
+                          for col in scale.aes
+                          if col in df ])
 
     @staticmethod
     def map_scales(df, scales):
+        scales = Scale._column_scales(df, scales)
         def map_col(col, name):
             if name in scales:
                 return scales[name].map(col)
@@ -105,16 +116,39 @@ class Scale(object):
 
 class ScaleCartesianContinuous(Scale):
     level = Level.CONTINUOUS
+    trans = transform.identity()
+    margin = 0.025
 
     def init(self, domain=None):
         self.domain = domain
 
+    def transform(self, series):
+        return self.trans.transform(series)
+
     def train(self, cols):
         if self.domain:
-            self.min, self.max = self.domain
+            self.min, self.max = self.trans.transform(self.domain)
         else:
             self.min = min(c.min() for c in cols)
             self.max = max(c.max() for c in cols)
+
+    def apply_ax(self, ax):
+        labels = self.trans.major_breaks((self.min, self.max))
+        ticks = self.trans.transform(labels)
+        self._ax_set_ticks_labels(ax, ticks, labels)
+
+        if self.domain:
+            self._ax_set_lim(ax, self.min, self.max)
+        else:
+            margin = (self.max - self.min) * self.margin
+            self._ax_set_lim(ax, min(ticks[0], self.min - margin),
+                             max(ticks[-1], self.max + margin))
+
+    def _ax_set_ticks_labels(self, ticks, labels):
+        raise NotImplementedError()
+
+    def _ax_set_lim(self, ax, min, max):
+        raise NotImplementedError()
 
 class ScaleCartesianDiscrete(Scale):
     level = Level.DISCRETE
@@ -130,16 +164,20 @@ class ScaleCartesianDiscrete(Scale):
         return series.map(self.mapper)
 
 class ScaleXContinuous(ScaleCartesianContinuous):
-    aes = 'x'
+    aes = {'x'}
 
-    def apply_ax(self, ax):
-        if self.domain:
-            ax.set_xlim(self.min, self.max)
-        else:
-            ax.autoscale_view(scaley=False)
+    def _ax_set_ticks_labels(self, ax, ticks, labels):
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(labels)
+
+    def _ax_set_lim(self, ax, min, max):
+        ax.set_xlim(min, max)
+
+class ScaleXSqrt(ScaleXContinuous):
+    trans = transform.sqrt()
 
 class ScaleXDiscrete(ScaleCartesianDiscrete):
-    aes = 'x'
+    aes = {'x'}
 
     def apply_ax(self, ax):
         ax.autoscale_view(scaley=False)
@@ -148,19 +186,24 @@ class ScaleXDiscrete(ScaleCartesianDiscrete):
 
 class x(object):
     continuous = ScaleXContinuous
+    sqrt = ScaleXSqrt
     discrete = ScaleXDiscrete
 
 class ScaleYContinuous(ScaleCartesianContinuous):
-    aes = 'y'
+    aes = {'y', 'ymin'}
 
-    def apply_ax(self, ax):
-        if self.domain:
-            ax.set_ylim(self.min, self.max)
-        else:
-            ax.autoscale_view(scalex=False)
+    def _ax_set_ticks_labels(self, ax, ticks, labels):
+        ax.set_yticks(ticks)
+        ax.set_yticklabels(labels)
+
+    def _ax_set_lim(self, ax, min, max):
+        ax.set_ylim(min, max)
+
+class ScaleYSqrt(ScaleYContinuous):
+    trans = transform.sqrt()
 
 class ScaleYDiscrete(ScaleCartesianDiscrete):
-    aes = 'y'
+    aes = {'y'}
 
     def apply_ax(self, ax):
         ax.autoscale_view(scalex=False)
@@ -169,10 +212,11 @@ class ScaleYDiscrete(ScaleCartesianDiscrete):
 
 class y(object):
     continuous = ScaleYContinuous
+    sqrt = ScaleYSqrt
     discrete = ScaleYDiscrete
 
 class ScaleColorDiv(Scale):
-    aes = 'color'
+    aes = {'color'}
     level = Level.CONTINUOUS
 
     def train(self, cols):
@@ -193,7 +237,7 @@ class ScaleColorDiv(Scale):
                  for c,v in zip(colors, vals) ]
 
 class ScaleColorQual(Scale):
-    aes = 'color'
+    aes = {'color'}
     level = Level.DISCRETE
 
     def train(self, cols):
@@ -233,16 +277,25 @@ def guess_default_scales(dataset, existing_scales):
 
     Return a dict of new scales (with no keys in common with `existing_scales`).
     """
-    wanted_scales = set(dataset.columns) - set(existing_scales)
+    if not existing_scales:
+        scaled_columns = set()
+    else:
+        scaled_columns = set.union(*(scl.aes
+                                     for scl in existing_scales.values()))
+
+    wanted_scales = set(dataset.columns) - scaled_columns
+    upcoming_scales = wanted_scales.intersection(set(default_scales))
     ret = {}
 
-    for scl in wanted_scales.intersection(set(default_scales)):
-        level = Level.guess_series_level(dataset[scl])
+    while upcoming_scales:
+        col = upcoming_scales.pop()
+        level = Level.guess_series_level(dataset[col])
         if level == Level.CONTINUOUS:
-            default = default_scales[scl][0]
+            default = default_scales[col][0]
         else:
-            default = default_scales[scl][1]
+            default = default_scales[col][1]
         if default is not None:
-            ret[scl] = default()
+            ret[default.__name__] = default()
+            upcoming_scales -= default.aes
 
     return ret

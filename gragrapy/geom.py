@@ -80,11 +80,12 @@ class GeomSmooth(Geom):
 smooth = GeomSmooth
 
 class GeomBar(Geom):
-    default_aes = Aes(width=Aes.const(1))
+    default_aes = Aes(width=Aes.const(1), ymin=Aes.const(0))
     def draw(self, ax, data):
         for _, row in data.iterrows():
             x = row.x - row.width/2
-            ax.add_patch(patches.Rectangle((x, 0), row.width, row.y,
+            height = row.y - row.ymin
+            ax.add_patch(patches.Rectangle((x, row.ymin), row.width, height,
                                            fill='black'))
 bar = GeomBar
 
