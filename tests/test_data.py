@@ -10,6 +10,14 @@ def test_data():
     assert isinstance(iris, pd.DataFrame)
     assert len(iris) == 150
 
+def test_diamonds():
+    diamonds = gg.data.diamonds
+    assert isinstance(diamonds, pd.DataFrame)
+    assert len(diamonds) == 53940
+    assert diamonds.cut.dtype == 'category'
+    assert diamonds.color.dtype == 'category'
+    assert diamonds.clarity.dtype == 'category'
+
 def test_datasets():
     datasets = gg.data.datasets()
     assert isinstance(datasets, pd.DataFrame)
