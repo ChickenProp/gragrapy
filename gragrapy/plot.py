@@ -18,6 +18,8 @@ class Plot(object):
         self.scales = {}
         self.faceter = faceter.NullFaceter()
 
+        self.title = None
+
     def show(self):
         self.make()
         if not os.getenv('GRAGRAPY_NOSHOW'):
@@ -53,6 +55,9 @@ class Plot(object):
                              for layer in self.layers ]
             self.faceter.train(all_datasets)
             fig, ax_map = self._get_fig_axmap()
+
+            if self.title is not None:
+                fig.suptitle(self.title)
 
             all_mapped = []
             for dataset, layer in zip(all_datasets, self.layers):
@@ -162,6 +167,8 @@ class Plot(object):
                 copy += x
         elif isinstance(other, type):
             copy += other()
+        elif isinstance(other, PlotObj):
+            other.apply(copy)
         elif isinstance(other, layer.LayerComponent):
             copy.layers.append(other.make_layer())
         elif isinstance(other, layer.Layer):
@@ -172,3 +179,15 @@ class Plot(object):
             copy.faceter = other
 
         return copy
+
+class PlotObj(object):
+    def apply(self, plot):
+        raise NotImplementedError()
+
+class PlotTitle(PlotObj):
+    def __init__(self, title):
+        self.title = title
+
+    def apply(self, plot):
+        plot.title = self.title
+title = PlotTitle
