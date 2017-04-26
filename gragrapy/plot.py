@@ -25,6 +25,10 @@ class Plot(object):
         if not os.getenv('GRAGRAPY_NOSHOW'):
             plt.show()
 
+    def save(self, filename):
+        self.make()
+        plt.gcf().savefig(filename)
+
     def __str__(self):
         self.show()
         return repr(self)

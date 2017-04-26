@@ -1,21 +1,37 @@
 from __future__ import (absolute_import, print_function,
                         unicode_literals, division)
 
+import os
+
 import pandas as pd
 
 from .context import gragrapy as gg
 
 iris = gg.data.iris
 
-def test_plot():
-    (gg.Plot(gg.data.ChickWeight,
-             gg.Aes(x='Time', y='weight', color='Diet')) + [
+def plot_tester(plot):
+    def tester():
+        plot().show()
+    return tester
+
+def test_save(tmpdir):
+    filename = tmpdir.join('test.png')
+    (gg.Plot(gg.data.iris, gg.Aes(x='Petal.Length', y='Petal.Width')) + [
+        gg.geom.point
+    ]).save(str(filename))
+    assert filename.check()
+
+@plot_tester
+def test_plot1():
+    return (gg.Plot(gg.data.ChickWeight,
+                    gg.Aes(x='Time', y='weight', color='Diet')) + [
         gg.geom.point,
         #gg.geom.line(gg.Aes(group='Chick')),
         gg.stat.smooth,
         gg.title('Chick weights colored according to diet with a smooth curve'),
-    ]).show()
+    ])
 
+def test_plot():
     fake_data = pd.DataFrame({'Sepal.Length': [7.0, 7.3],
                               'Sepal.Width': [4, 5],
                               'FakeCol': ['Fake', 'Fake2']})
