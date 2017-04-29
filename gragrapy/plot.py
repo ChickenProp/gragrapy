@@ -49,6 +49,7 @@ class Plot(object):
             return mpl.rcParams
 
     def make(self):
+        plt.close()
         with mpl.rc_context():
             self.apply_theme()
 
