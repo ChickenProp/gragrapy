@@ -160,6 +160,8 @@ class Plot(object):
         copy = Plot(self.data, self.aes)
         copy.layers = list(self.layers)
         copy.scales = dict(self.scales)
+        copy.faceter = self.faceter
+        copy.title = self.title
 
         return copy
 
