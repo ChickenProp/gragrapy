@@ -105,3 +105,11 @@ def test_plot6():
         gg.geom.hist(bins=100),
         gg.title('histogram of diamond prices'),
     ]
+
+@plot_tester
+def test_7():
+    return gg.Plot(gg.data.anscombe, gg.Aes(x='x', y='y')) + [
+        gg.geom.point,
+        gg.facet('dataset'),
+        gg.title("Anscombe's quartet"),
+    ]

@@ -18,6 +18,11 @@ def test_diamonds():
     assert diamonds.color.dtype == 'category'
     assert diamonds.clarity.dtype == 'category'
 
+def test_anscombe():
+    anscombe = gg.data.anscombe
+    assert isinstance(anscombe, pd.DataFrame)
+    assert len(anscombe) == 44
+
 def test_datasets():
     datasets = gg.data.datasets()
     assert isinstance(datasets, pd.DataFrame)

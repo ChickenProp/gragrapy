@@ -52,4 +52,14 @@ class Data(object):
                                               ordered=True, inplace=True)
         return result
 
+    _anscombe = None
+    @property
+    def anscombe(self):
+        if self._anscombe is not None:
+            return self._anscombe
+
+        anscombe_path = os.path.join(_dataset_dir, 'anscombe.csv')
+        result = self._anscombe = pd.read_csv(anscombe_path)
+        return result
+
 data = Data()
