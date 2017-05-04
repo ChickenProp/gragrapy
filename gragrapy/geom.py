@@ -66,6 +66,7 @@ class GeomRibbon(Geom):
 ribbon = GeomRibbon
 
 class GeomSmooth(Geom):
+    default_stat = 'smooth'
     def __init__(self, aes=None, data=None, **params):
         Geom.__init__(self, aes, data, **params)
 
