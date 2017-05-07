@@ -12,7 +12,7 @@ def test_stat_identity():
     iris = gg.data.iris
     assert_data_equal(iris, stat.transform(iris))
 
-def test_stat_smooth():
+def test_stat_smooth_mavg():
     x = sorted(np.random.randn(50)*4)
     y = sorted(np.random.randn(50))
     df = pd.DataFrame({'x': x, 'y': y})
@@ -27,6 +27,20 @@ def test_stat_smooth():
     # Check the error bars surround the smoothed curve
     assert (trans.y.isnull()
             | ((trans.ymin < trans.y) & (trans.y < trans.ymax))).all()
+
+    # The smoothed curve should be monotonically increasing
+    diffs = trans.diff()[['x', 'y']]
+    assert (diffs.isnull() | (diffs > 0)).all().all()
+
+def test_stat_smooth_lm():
+    x = sorted(np.random.randn(50)*4)
+    y = sorted(np.random.randn(50))
+    df = pd.DataFrame({'x': x, 'y': y})
+    stat = gg.stat.smooth(method='lm')
+    trans = stat.transform_group(df)
+
+    # Check the error bars surround the smoothed curve
+    assert ((trans.ymin < trans.y) & (trans.y < trans.ymax)).all()
 
     # The smoothed curve should be monotonically increasing
     diffs = trans.diff()[['x', 'y']]

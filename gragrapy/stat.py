@@ -47,12 +47,33 @@ identity = StatIdentity
 class StatSmooth(Stat):
     default_geom = 'smooth'
 
-    def transform_group(self, df):
+    def transform_group_mavg(self, df):
         sorted = df.sort_values('x')
         y = sorted['y'].rolling(5, center=True).mean()
         std = sorted['y'].rolling(5, center=True).std()
         return pd.DataFrame({'x': sorted['x'], 'y': y,
                              'ymin': y - std, 'ymax': y + std})
+
+    def transform_group_lm(self, df):
+        import statsmodels.api as sm
+        from statsmodels.sandbox.regression.predstd import wls_prediction_std
+
+        sorted = df.sort_values('x')
+        fit = sm.OLS(sorted.y, sm.add_constant(sorted.x)).fit()
+        # wls_prediction_std respects indexes, so no need to reindex
+        std, low, high = wls_prediction_std(fit, alpha=0.05)
+        return pd.DataFrame({'x': sorted.x, 'y': fit.fittedvalues,
+                             'ymin': low, 'ymax': high})
+
+    def transform_group(self, df):
+        method = self.params.get('method', 'mavg')
+        if method == 'lm':
+            return self.transform_group_lm(df)
+        elif method == 'mavg':
+            return self.transform_group_mavg(df)
+        else:
+            raise ValueError('No such smooth method: %r. Use "lm" or "mavg".'
+                             % (method,))
 
 smooth = StatSmooth
 

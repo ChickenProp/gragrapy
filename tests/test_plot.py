@@ -110,6 +110,7 @@ def test_plot6():
 def test_7():
     return gg.Plot(gg.data.anscombe, gg.Aes(x='x', y='y')) + [
         gg.geom.point,
+        gg.stat.smooth(method='lm', geom='line', color='red'),
         gg.facet('dataset'),
-        gg.title("Anscombe's quartet"),
+        gg.title("Anscombe's quartet with linear regression lines"),
     ]
