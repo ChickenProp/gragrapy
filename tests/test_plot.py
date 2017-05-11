@@ -50,7 +50,8 @@ def test_plot1():
         gg.geom.point,
         #gg.geom.line(gg.Aes(group='Chick')),
         gg.stat.smooth,
-        gg.title('Chick weights colored according to diet with a smooth curve'),
+        gg.title('Chick weights colored according to diet'
+                 ' with smooth curves per diet'),
     ]
 
 @plot_tester

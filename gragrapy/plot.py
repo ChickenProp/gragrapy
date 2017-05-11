@@ -151,8 +151,17 @@ class Plot(object):
         if 'group' in data:
             return
 
-        cols = tuple(k for k,v in scales.items()
-                     if k in data and v.level == scale.Level.DISCRETE)
+        disc_scales = [ s.aes for s in scales.values()
+                        if s.level == scale.Level.DISCRETE]
+        if disc_scales:
+            cols = set.union(*disc_scales).intersection(set(data.columns))
+        else:
+            cols = None
+
+        if not cols:
+            data['group'] = '' # Can't use None because we later groupby() this
+            return
+
         groups = data.apply(lambda row: repr(tuple(row[c] for c in cols)),
                             axis=1)
         data['group'] = groups
