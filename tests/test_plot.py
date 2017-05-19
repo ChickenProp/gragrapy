@@ -10,7 +10,7 @@ from .context import gragrapy as gg
 iris = gg.data.iris
 
 def plot_tester(plot):
-    def tester(tmpdir, cache, accept_plots):
+    def tester(tmpdir, cache, accept_plots, show_plots):
         filename = tmpdir.join('test.png')
         cache_key = 'gragrapy/plot-hash-%s' % (plot.__name__,)
         old_hash = cache.get(cache_key, None)
@@ -24,6 +24,8 @@ def plot_tester(plot):
                 cache.set(cache_key, new_hash)
             else:
                 plt.show()
+        elif show_plots:
+            plt.show()
 
     tester.plot = plot
     return tester
