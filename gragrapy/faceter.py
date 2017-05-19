@@ -45,9 +45,10 @@ class Faceter(object):
         facet column. If the dataset lacks the facet column, then every facet
         gets a copy of the data."""
         if self.column in data:
-            return data.groupby(data[self.column])
+            return data.assign(facet=data[self.column])
         else:
-            return [ (name, data) for name in self.facet_names ]
+            facets = [ data.assign(facet=name) for name in self.facet_names ]
+            return pd.concat(facets, ignore_index=True)
 
 facet = Faceter
 
@@ -63,4 +64,4 @@ class NullFaceter(Faceter):
         return 1, 1
 
     def facet(self, data):
-        return [('', data)]
+        return data.assign(facet='')

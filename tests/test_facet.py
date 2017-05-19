@@ -2,6 +2,8 @@ from __future__ import (absolute_import, print_function,
                         unicode_literals, division)
 
 from .context import gragrapy as gg
+from . import assert_data_equal
+import pandas.util.testing as pdtest
 
 import pandas as pd
 
@@ -19,18 +21,16 @@ def test_facet():
     assert len(faceter.facet_names) == 10
 
     faceted = faceter.facet(df1)
-    # Faceting a df gives only the groups in that df
-    assert len(faceted) == 4
+    pdtest.assert_series_equal(faceted['facet'], df1['Group'],
+                               check_names=False)
+    assert_data_equal(faceted.drop('facet', axis=1), df1)
 
-    # Each group is (name, data)
-    for x in faceted:
-        assert isinstance(x, tuple)
-        assert len(x) == 2
-        assert x[0] in faceter.facet_names
-        assert isinstance(x[1], pd.DataFrame)
-
-    # if the df doesn't have a group col, it goes in every facet group
-    assert len(faceter.facet(pd.DataFrame({'Val': range(5)}))) == 10
+    df3 = pd.DataFrame({'Val': range(5)})
+    faceted = faceter.facet(df3)
+    assert len(faceted) == len(df3) * len(faceter.facet_names)
+    for name, data in faceted.groupby('facet'):
+        data = data.drop('facet', axis=1).reset_index(drop=True)
+        assert_data_equal(data, df3)
 
 def test_shape():
     df = mkfacetdf(range(11))

@@ -64,16 +64,33 @@ class Plot(object):
             if self.title is not None:
                 fig.suptitle(self.title)
 
+            def refacet(datasets):
+                """Turn new-style faceting into old-style. Ties layers and axes
+                in, because previously passing them all around was how we
+                associated a facet with them.
+
+                This should only stay around until everything handles new-style.
+                """
+                all_faceted = []
+                for dataset, layer in zip(datasets, self.layers):
+                    for name, facet in dataset.groupby('facet'):
+                        all_faceted.append((ax_map[name], layer, facet))
+                return all_faceted
+
+            datasets = [ self.faceter.facet(d) for d in all_datasets ]
+
             all_mapped = []
-            for dataset, layer in zip(all_datasets, self.layers):
-                for name, facet in self.faceter.facet(dataset):
-                    aes = layer.wrap_aes(self.aes)
-                    scale_names.update(aes.scale_names())
+            for layer, facet in zip(self.layers, datasets):
+                aes = layer.wrap_aes(self.aes)
+                scale_names.update(aes.scale_names())
 
-                    mapped1 = aes.map_data(facet)
-                    all_mapped.append((ax_map[name], layer, mapped1))
+                mapped1 = aes.map_data(facet)
+                mapped1['facet'] = facet['facet']
+                all_mapped.append(mapped1)
 
-                    scales.update(scale.guess_default_scales(mapped1, scales))
+                scales.update(scale.guess_default_scales(mapped1, scales))
+
+            all_mapped = refacet(all_mapped)
 
             all_statted = []
             for (ax, layer, mapped1) in all_mapped:
