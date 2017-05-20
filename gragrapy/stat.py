@@ -48,9 +48,10 @@ class StatSmooth(Stat):
     default_geom = 'smooth'
 
     def transform_group_mavg(self, df):
+        window = self.params.get('window', 5)
         sorted = df.sort_values('x')
-        y = sorted['y'].rolling(5, center=True).mean()
-        std = sorted['y'].rolling(5, center=True).std()
+        y = sorted['y'].rolling(window, center=True).mean()
+        std = sorted['y'].rolling(window, center=True).std()
         return pd.DataFrame({'x': sorted['x'], 'y': y,
                              'ymin': y - std, 'ymax': y + std})
 

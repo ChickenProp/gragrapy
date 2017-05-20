@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, print_function,
                         unicode_literals, division)
 
+import pytest
 import pandas as pd
 import numpy as np
 
@@ -12,17 +13,18 @@ def test_stat_identity():
     iris = gg.data.iris
     assert_data_equal(iris, stat.transform(iris))
 
-def test_stat_smooth_mavg():
+@pytest.mark.parametrize('window', [5, 25])
+def test_stat_smooth_mavg(window):
     x = sorted(np.random.randn(50)*4)
     y = sorted(np.random.randn(50))
     df = pd.DataFrame({'x': x, 'y': y})
-    stat = gg.stat.smooth()
+    stat = gg.stat.smooth(method='mavg', window=window)
     trans = stat.transform_group(df)
 
     assert trans.x.isnull().sum() == 0
-    assert trans.y.isnull().sum() == 4
-    assert trans.ymin.isnull().sum() == 4
-    assert trans.ymax.isnull().sum() == 4
+    assert trans.y.isnull().sum() == window-1
+    assert trans.ymin.isnull().sum() == window-1
+    assert trans.ymax.isnull().sum() == window-1
 
     # Check the error bars surround the smoothed curve
     assert (trans.y.isnull()

@@ -121,7 +121,7 @@ def test_7():
 @plot_tester
 def test_plot8():
     return gg.Plot(gg.data.diamonds, gg.Aes(x='carat', y='price')) + [
-        gg.stat.smooth(gg.Aes(stat_y='ymax'), color='red'),
+        gg.stat.smooth(gg.Aes(stat_y='ymax'), color='red', window=50),
         gg.geom.point,
         gg.title('diamond prices by carat; smooth curve at top of error bars'),
     ]
