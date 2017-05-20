@@ -99,6 +99,7 @@ class Plot(object):
                 self._add_group(scaled1, scales)
                 statted = layer.stat.transform(scaled1)
 
+                aes = layer.wrap_aes(self.aes)
                 mapped2 = aes.map_stat(statted)
                 stat_cols = set(aes.stat_mappings)
 

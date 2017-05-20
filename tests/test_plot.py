@@ -117,3 +117,11 @@ def test_7():
         gg.facet('dataset'),
         gg.title("Anscombe's quartet with linear regression lines"),
     ]
+
+@plot_tester
+def test_plot8():
+    return gg.Plot(gg.data.diamonds, gg.Aes(x='carat', y='price')) + [
+        gg.stat.smooth(gg.Aes(stat_y='ymax'), color='red'),
+        gg.geom.point,
+        gg.title('diamond prices by carat; smooth curve at top of error bars'),
+    ]
