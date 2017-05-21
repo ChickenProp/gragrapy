@@ -3,6 +3,7 @@ from __future__ import (absolute_import, print_function,
 
 import os
 
+import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm
@@ -64,40 +65,30 @@ class Plot(object):
             if self.title is not None:
                 fig.suptitle(self.title)
 
-            def refacet(datasets):
-                """Turn new-style faceting into old-style. Ties layers and axes
-                in, because previously passing them all around was how we
-                associated a facet with them.
-
-                This should only stay around until everything handles new-style.
-                """
-                all_faceted = []
-                for dataset, layer in zip(datasets, self.layers):
-                    for name, facet in dataset.groupby('facet'):
-                        all_faceted.append((ax_map[name], layer, facet))
-                return all_faceted
-
             datasets = [ self.faceter.facet(d) for d in all_datasets ]
 
-            all_mapped = []
-            for layer, facet in zip(self.layers, datasets):
+            def _map1(dataset, layer):
                 aes = layer.wrap_aes(self.aes)
                 scale_names.update(aes.scale_names())
 
-                mapped1 = aes.map_data(facet)
-                mapped1['facet'] = facet['facet']
-                all_mapped.append(mapped1)
+                mapped1 = aes.map_data(dataset)
+                mapped1['facet'] = dataset['facet']
 
                 scales.update(scale.guess_default_scales(mapped1, scales))
+                return mapped1
 
-            all_mapped = refacet(all_mapped)
+            datasets = map(_map1, datasets, self.layers)
 
-            all_statted = []
-            for (ax, layer, mapped1) in all_mapped:
+            def _stat(mapped1, layer):
                 scaled1 = scale.Scale.transform_scales(mapped1, scales)
 
                 self._add_group(scaled1, scales)
-                statted = layer.stat.transform(scaled1)
+                groups = scaled1.groupby('facet')
+                statted_groups = [ (name, layer.stat.transform(group))
+                                   for name, group in groups ]
+                statted_groups = [ group.assign(facet=name)
+                                   for name, group in statted_groups ]
+                statted = pd.concat(statted_groups, ignore_index=True)
 
                 aes = layer.wrap_aes(self.aes)
                 mapped2 = aes.map_stat(statted)
@@ -118,13 +109,22 @@ class Plot(object):
                 scales.update(scale.guess_default_scales(mapped2, scales))
                 scaled2 = scale.Scale.transform_scales(mapped2, scales,
                                                        columns=stat_cols)
-                all_statted.append((ax, layer, scaled2))
+                return scaled2
 
-            scale.Scale.train_scales([x[2] for x in all_statted], scales)
+            # python3 map objects can only be iterated once, so list()
+            datasets = list(map(_stat, datasets, self.layers))
+            scale.Scale.train_scales(datasets, scales)
 
-            for (ax, layer, scaled2) in all_statted:
-                scaled3 = scale.Scale.map_scales(scaled2, scales)
-                layer.draw(ax, scaled3)
+            datasets = map(lambda df: scale.Scale.map_scales(df, scales),
+                           datasets)
+
+            def _draw(scaled3, layer):
+                groups = scaled3.groupby('facet')
+                for name, group in groups:
+                    layer.draw(ax_map[name], group)
+
+            # python3 maps are lazy, so list()
+            list(map(_draw, datasets, self.layers))
 
             x_scale = next(s for s in scales.values() if 'x' in s.aes)
             y_scale = next(s for s in scales.values() if 'y' in s.aes)
