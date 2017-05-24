@@ -35,7 +35,9 @@ class Geom(LayerComponent):
 class GeomPoint(Geom):
     def draw(self, ax, data):
         color = self.params.get('color', data.get('color', 'black'))
-        ax.scatter(data['x'], data['y'], c=color, edgecolors='face')
+        alpha = self.params.get('alpha', 1)
+        ax.scatter(data['x'], data['y'], c=color, edgecolors='face',
+                   alpha=alpha)
 point = GeomPoint
 
 class GeomLine(Geom):
