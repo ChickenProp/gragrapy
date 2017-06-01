@@ -84,12 +84,20 @@ smooth = GeomSmooth
 
 class GeomBar(Geom):
     default_aes = Aes(width=Aes.const(1), ymin=Aes.const(0))
+
     def draw(self, ax, data):
+        if 'color' in self.params or 'color' not in data.columns:
+            has_const_color = True
+            const_color = self.params.get('color', 'black')
+        elif 'color' in data.columns:
+            has_const_color = False
+
         for _, row in data.iterrows():
             x = row.x - row.width/2
             height = row.y - row.ymin
+            color = const_color if has_const_color else row.color
             ax.add_patch(patches.Rectangle((x, row.ymin), row.width, height,
-                                           fill='black'))
+                                           fill=True, facecolor=color))
 bar = GeomBar
 
 class GeomHist(GeomBar):

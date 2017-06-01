@@ -94,8 +94,9 @@ def test_plot4():
 @plot_tester
 def test_plot5():
     data = pd.DataFrame({'xpos': 'a b c d e'.split(),
-                         'height': [1, 7, 2, 5, 3]})
-    return gg.Plot(data, gg.Aes(x='xpos', y='height')) + [
+                         'height': [1, 7, 2, 5, 3],
+                         'color': [True, True, False, False, True]})
+    return gg.Plot(data, gg.Aes(x='xpos', y='height', color='color')) + [
         gg.geom.bar,
         gg.scale.x.discrete(labels='foo bar baz bletch quux'.split()),
         gg.scale.y.sqrt,
