@@ -79,10 +79,35 @@ class Plot(object):
 
             datasets = map(_map1, datasets, self.layers)
 
-            def _stat(mapped1, layer):
-                scaled1 = scale.Scale.transform_scales(mapped1, scales)
+            def _trans(mapped1):
+                return scale.Scale.transform_scales(mapped1, scales)
 
-                self._add_group(scaled1, scales)
+            datasets = map(_trans, datasets)
+
+            # python3 map objects can only be iterated once, so list()
+            datasets = list(datasets)
+
+            # color scales map to np.ndarray values, which causes problems when
+            # the stat calls nunique(). That's probably fixable, but right now
+            # stats only look at position and unscaled aesthetics anyway.
+            #   So currently, we train and map position scales before applying
+            # the stat, and we train and map all other scales afterwards. If the
+            # stat introduces a position scale (e.g. stat.bin introduces y), we
+            # train and map that afterwards too.
+
+            position_scales = { k: v for k,v in scales.items()
+                                if 'x' in v.aes or 'y' in v.aes }
+            scale.Scale.train_scale_maps(datasets, position_scales)
+
+            # python3 map objects are also lazy, so list() here too
+            list(map(lambda df: self._add_group(df, scales), datasets))
+
+            def _map_scales(scales):
+                return lambda df: scale.Scale.map_scales(df, scales)
+
+            datasets = map(_map_scales(position_scales), datasets)
+
+            def _stat(scaled1, layer):
                 groups = scaled1.groupby('facet')
                 statted_groups = [ (name, layer.stat.transform(group))
                                    for name, group in groups ]
@@ -111,19 +136,23 @@ class Plot(object):
                                                        columns=stat_cols)
                 return scaled2
 
-            # python3 map objects can only be iterated once, so list()
-            datasets = list(map(_stat, datasets, self.layers))
-            scale.Scale.train_scales(datasets, scales)
+            datasets = map(_stat, datasets, self.layers)
+            datasets = list(datasets)
 
-            datasets = map(lambda df: scale.Scale.map_scales(df, scales),
-                           datasets)
+            untrained_scales = { k:v for k,v in scales.items()
+                                 if k not in position_scales }
+            scale.Scale.train_scale_maps(datasets, untrained_scales)
+
+            datasets = map(_map_scales(untrained_scales), datasets)
+            datasets = list(datasets)
+
+            scale.Scale.train_scale_guides(datasets, scales)
 
             def _draw(scaled3, layer):
                 groups = scaled3.groupby('facet')
                 for name, group in groups:
                     layer.draw(ax_map[name], group)
 
-            # python3 maps are lazy, so list()
             list(map(_draw, datasets, self.layers))
 
             x_scale = next(s for s in scales.values() if 'x' in s.aes)

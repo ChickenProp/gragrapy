@@ -25,7 +25,7 @@ def test_color_div():
     s1 = pd.Series(np.linspace(1, 10, 15), index=list('abcdefghijklmno'))
     s2 = pd.Series(np.linspace(15, 20, 10))
     scl = gg.scale.color.div()
-    scl.train([s1, s2])
+    scl.train_map([s1, s2])
     mapped = scl.map(s1)
 
     pdtest.assert_index_equal(mapped.index, s1.index)

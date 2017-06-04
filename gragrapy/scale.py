@@ -61,13 +61,16 @@ class Scale(object):
         This takes place before stats are applied."""
         return series
 
-    def train(self, series):
+    def train_map(self, cols):
         """Learn the domain of the scale."""
         pass
 
     def map(self, series):
         """Map the series into plot-space."""
         return series
+
+    def train_guide(self, cols):
+        """Re-learn the domain of the scale."""
 
     def copy(self):
         return self.__class__(*self.args, **self.kwargs)
@@ -93,12 +96,12 @@ class Scale(object):
                               for cname in df.columns })
 
     @staticmethod
-    def train_scales(datas, scales):
+    def train_scale_maps(datas, scales):
         for scale in scales.values():
-            scale.train([ df[col]
-                          for df in datas
-                          for col in scale.aes
-                          if col in df ])
+            scale.train_map([ df[col]
+                              for df in datas
+                              for col in scale.aes
+                              if col in df ])
 
     @staticmethod
     def map_scales(df, scales):
@@ -110,6 +113,14 @@ class Scale(object):
 
         return pd.DataFrame({ cname: map_col(df[cname], cname)
                               for cname in df.columns })
+
+    @staticmethod
+    def train_scale_guides(datas, scales):
+        for scale in scales.values():
+            scale.train_guide([ df[col]
+                                for df in datas
+                                for col in scale.aes
+                                if col in df ])
 
     def get_legend(self):
         pass
@@ -125,7 +136,7 @@ class ScaleCartesianContinuous(Scale):
     def transform(self, series):
         return self.trans.transform(series)
 
-    def train(self, cols):
+    def train_guide(self, cols):
         if self.domain:
             self.min, self.max = self.trans.transform(self.domain)
         else:
@@ -156,7 +167,7 @@ class ScaleCartesianDiscrete(Scale):
     def init(self, labels=None):
         self.labels = labels
 
-    def train(self, cols):
+    def train_map(self, cols):
         vals = util.sorted_unique(pd.concat(cols, ignore_index=True))
         self.mapper = OrderedDict((v, i) for i,v in enumerate(vals))
 
@@ -219,7 +230,7 @@ class ScaleColorDiv(Scale):
     aes = {'color'}
     level = Level.CONTINUOUS
 
-    def train(self, cols):
+    def train_map(self, cols):
         self.min = min(c.min() for c in cols)
         self.max = max(c.max() for c in cols)
         self.norm = matplotlib.colors.Normalize(self.min, self.max)
@@ -240,7 +251,7 @@ class ScaleColorQual(Scale):
     aes = {'color'}
     level = Level.DISCRETE
 
-    def train(self, cols):
+    def train_map(self, cols):
         cmap = matplotlib.cm.get_cmap('Set1')
         vals = util.sorted_unique(pd.concat(cols, ignore_index=True))
 
