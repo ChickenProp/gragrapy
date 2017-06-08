@@ -111,7 +111,7 @@ def test_plot6():
     ]
 
 @plot_tester
-def test_7():
+def test_plot7():
     return gg.Plot(gg.data.anscombe, gg.Aes(x='x', y='y')) + [
         gg.geom.point,
         gg.stat.smooth(method='lm', geom='line', color='red'),
