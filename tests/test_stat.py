@@ -55,7 +55,7 @@ def test_stat_bin():
 
 def test_grouping():
     class ToyStat(gg.stat.Stat):
-        def transform_group(self, df):
+        def transform_group(self, df, scales=None):
             return pd.DataFrame([[2,3],[5,7]], columns='a b'.split())
 
     df = pd.DataFrame([[1, 11, 21, 31, 41],

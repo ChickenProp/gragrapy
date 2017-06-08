@@ -109,7 +109,7 @@ class Plot(object):
 
             def _stat(scaled1, layer):
                 groups = scaled1.groupby('facet')
-                statted_groups = [ (name, layer.stat.transform(group))
+                statted_groups = [ (name, layer.stat.transform(group, scales))
                                    for name, group in groups ]
                 statted_groups = [ group.assign(facet=name)
                                    for name, group in statted_groups ]

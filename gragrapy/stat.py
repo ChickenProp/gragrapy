@@ -6,13 +6,13 @@ import pandas as pd
 
 from .layer import Layer, LayerComponent
 from .aes import Aes
-from . import util
+from . import util, scale
 
 class Stat(LayerComponent):
     default_geom = 'point'
     default_aes = Aes()
 
-    def transform(self, df):
+    def transform(self, df, scales=None):
         grouped = df.groupby('group')
 
         oneval_cols = { gname: util.single_value_columns(group)
@@ -21,7 +21,7 @@ class Stat(LayerComponent):
         restore_cols = set.intersection(*oneval_col_names)
 
         def transform_group(gname, group):
-            transformed = self.transform_group(group)
+            transformed = self.transform_group(group, scales)
             for col in restore_cols:
                 if col not in transformed:
                     transformed[col] = oneval_cols[gname][col]
@@ -31,7 +31,7 @@ class Stat(LayerComponent):
                         for gname,group in grouped ]
         return pd.concat(transformed, ignore_index=True)
 
-    def transform_group(self, df):
+    def transform_group(self, df, scales=None):
         pass
 
     def make_layer(self):
@@ -40,7 +40,7 @@ class Stat(LayerComponent):
                      params=self.params)
 
 class StatIdentity(Stat):
-    def transform(self, df):
+    def transform(self, df, scales=None):
         return df
 identity = StatIdentity
 
@@ -66,7 +66,7 @@ class StatSmooth(Stat):
         return pd.DataFrame({'x': sorted.x, 'y': fit.fittedvalues,
                              'ymin': low, 'ymax': high})
 
-    def transform_group(self, df):
+    def transform_group(self, df, scales=None):
         method = self.params.get('method', 'mavg')
         if method == 'lm':
             return self.transform_group_lm(df)
@@ -82,10 +82,20 @@ class StatBin(Stat):
     default_geom = 'hist'
     default_aes = Aes(stat_y='weight')
 
-    def transform_group(self, df):
-        nbins = self.params.get('bins', 10)
+    def transform_group(self, df, scales=None):
+        if scales is not None:
+            x_scale = next(s for s in scales.values() if 'x' in s.aes)
+        else:
+            x_scale = None
 
-        groups, bins = pd.cut(df.x, nbins, retbins=True)
+        if x_scale and x_scale.level == scale.Level.DISCRETE:
+            counts = df.x.value_counts()
+            return pd.DataFrame({'x': counts.index,
+                                 'weight': counts, 'width': 0.9})
+        else:
+            nbins = self.params.get('bins', 10)
+            groups, bins = pd.cut(df.x, nbins, retbins=True)
+
         mids = pd.Series((bins[1:] + bins[:-1])/2,
                           index=groups.cat.categories)
         widths = pd.Series(bins[1:] - bins[:-1],
