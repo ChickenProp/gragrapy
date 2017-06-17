@@ -53,6 +53,24 @@ def test_stat_bin():
     trans = gg.stat.bin(bins=3).transform_group(df)
     assert set(trans.weight) == {1,2,3}
 
+def test_stat_boxplot():
+    df = pd.DataFrame({'x': 1, 'y': np.random.randn(100)})
+    df = df.append(pd.DataFrame({'x': 1, 'y': [-10, -50, 300]}))
+    trans = gg.stat.boxplot().transform_group(df)
+
+    inliers = trans.youtlier.isnull()
+    assert len(trans[inliers]) == 1
+
+    stats = trans[inliers].iloc[0]
+    assert stats.ymin < stats.lower < stats.ymid < stats.upper < stats.ymax
+    assert stats.x == 1
+
+    outliers = trans[~inliers]
+    assert len(outliers) >= 3
+    assert outliers['ymin lower ymid upper ymax'.split()].isnull().all().all()
+    assert set(outliers.youtlier).issuperset({-10, -50, 300})
+
+
 def test_grouping():
     class ToyStat(gg.stat.Stat):
         def transform_group(self, df, scales=None):

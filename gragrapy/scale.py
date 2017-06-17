@@ -201,7 +201,7 @@ class x(object):
     discrete = ScaleXDiscrete
 
 class ScaleYContinuous(ScaleCartesianContinuous):
-    aes = {'y', 'ymin'}
+    aes = {'y', 'ymax', 'ymin', 'upper', 'lower', 'youtlier'}
 
     def _ax_set_ticks_labels(self, ax, ticks, labels):
         ax.set_yticks(ticks)
@@ -279,6 +279,8 @@ class color(object):
 default_scales = {
     'x': (x.continuous, x.discrete),
     'y': (y.continuous, y.discrete),
+    'ymax': (y.continuous, y.discrete),
+    'ymin': (y.continuous, y.discrete),
     'color': (color.div, color.qual),
 }
 

@@ -105,3 +105,33 @@ class StatBin(Stat):
         return pd.DataFrame({'x': mids, 'weight': counts, 'width': widths})
 
 bin = StatBin
+
+class StatBoxplot(Stat):
+    default_geom = 'boxplot'
+
+    def transform_group(self, df, scales=None):
+        quants = df.y.quantile([0, 0.25, 0.5, 0.75, 1])
+        quants.index = 'ymin lower ymid upper ymax'.split()
+        quants['x'] = df.x.mean()
+
+        coef = self.params.get('outlier_coef', 1.5)
+
+        if coef > 0:
+            iqr = quants.upper - quants.lower
+            bound_low = quants.lower - iqr*coef
+            bound_high = quants.upper + iqr*coef
+
+            inliers = (bound_low <= df.y) & (df.y <= bound_high)
+            quants.ymin, quants.ymax = df.y[inliers].quantile([0, 1])
+
+        frame = quants.to_frame().T
+
+        outliers = df.y[~inliers].rename('youtlier').to_frame()
+        outliers['x'] = quants.x
+
+        frame = frame.append(outliers)
+        frame.reset_index(drop=True, inplace=True)
+
+        return frame
+
+boxplot = StatBoxplot

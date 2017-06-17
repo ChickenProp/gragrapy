@@ -4,6 +4,7 @@ from __future__ import (absolute_import, print_function,
 import numpy as np
 import matplotlib.collections as collections
 import matplotlib.patches as patches
+import matplotlib.lines as mlines
 
 from .layer import Layer, LayerComponent
 from .aes import Aes
@@ -104,3 +105,45 @@ class GeomHist(GeomBar):
     default_stat = 'bin'
 
 hist = GeomHist
+
+class GeomBoxplot(Geom):
+    default_stat = 'boxplot'
+    default_aes = Aes(width=Aes.const(0.9))
+
+    def draw_box(self, ax, row):
+        x = row.x - row.width/2
+        height = row.upper - row.lower
+
+        # I couldn't find a way to get a non-blurry thin line as a line, but
+        # a height-0 Rectangle works.
+        def rect(x1, y1, width, height):
+            return patches.Rectangle((x1, y1), width, height,
+                                        fill=False, edgecolor='black')
+
+        add_patches = [
+            rect(x, row.lower, row.width, height),
+
+            rect(x, row.ymid, row.width, 0),
+            rect(row.x, row.upper, 0, row.ymax - row.upper),
+            rect(row.x, row.ymin, 0, row.lower - row.ymin),
+            rect(x, row.ymax, row.width, 0),
+            rect(x, row.ymin, row.width, 0),
+        ]
+
+        for p in add_patches:
+            ax.add_patch(p)
+
+    def draw(self, ax, data):
+        stat_rows = data.youtlier.isnull()
+        for _, row in data[stat_rows].iterrows():
+            self.draw_box(ax, row)
+
+        # Future: allow user to specify this geom.
+        # ideally we want to be able to jitter - maybe see if geom has a
+        # 'position' param and apply that position if so. That avoids applying a
+        # position to the boxplot dataset.
+
+        outliers_geom = point()
+        outliers = data[~stat_rows][['x', 'youtlier']]
+        outliers_geom.draw(ax, outliers.rename(columns={'youtlier': 'y'}))
+boxplot = GeomBoxplot

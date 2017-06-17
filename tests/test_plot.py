@@ -127,3 +127,8 @@ def test_plot8():
         gg.title('low-alpha diamond prices by carat;'
                  ' smooth curve at top of error bars'),
     ]
+
+@plot_tester
+def test_plot9():
+    return gg.Plot(gg.data.diamonds, gg.Aes(x='color', y='price')) \
+        + gg.geom.boxplot
