@@ -222,25 +222,28 @@ class Plot(object):
 
         return copy
 
-    def __add__(self, other):
-        copy = self._copy()
-
+    def __iadd__(self, other):
         if isinstance(other, list):
             for x in other:
-                copy += x
+                self += x
         elif isinstance(other, type):
-            copy += other()
+            self += other()
         elif isinstance(other, PlotObj):
-            other.apply(copy)
+            other.apply(self)
         elif isinstance(other, layer.LayerComponent):
-            copy.layers.append(other.make_layer())
+            self.layers.append(other.make_layer())
         elif isinstance(other, layer.Layer):
-            copy.layers.append(other)
+            self.layers.append(other)
         elif isinstance(other, scale.Scale):
-            copy.scales[other.__class__.__name__] = other
+            self.scales[other.__class__.__name__] = other
         elif isinstance(other, faceter.Faceter):
-            copy.faceter = other
+            self.faceter = other
 
+        return self
+
+    def __add__(self, other):
+        copy = self._copy()
+        copy += other
         return copy
 
 class PlotObj(object):
