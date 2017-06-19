@@ -52,6 +52,15 @@ class Data(object):
                                               ordered=True, inplace=True)
         return result
 
+    _diamonds_small = None
+    @property
+    def diamonds_small(self):
+        if self._diamonds_small is not None:
+            return self._diamonds_small
+
+        self._diamonds_small = self.diamonds.sample(frac=1/10, random_state=42)
+        return self._diamonds_small
+
     _anscombe = None
     @property
     def anscombe(self):

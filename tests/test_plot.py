@@ -105,7 +105,7 @@ def test_plot5():
 
 @plot_tester
 def test_plot6():
-    return gg.Plot(gg.data.diamonds, gg.Aes(x='price')) + [
+    return gg.Plot(gg.data.diamonds_small, gg.Aes(x='price')) + [
         gg.geom.hist(bins=100),
         gg.title('histogram of diamond prices'),
     ]
@@ -121,7 +121,7 @@ def test_plot7():
 
 @plot_tester
 def test_plot8():
-    return gg.Plot(gg.data.diamonds, gg.Aes(x='carat', y='price')) + [
+    return gg.Plot(gg.data.diamonds_small, gg.Aes(x='carat', y='price')) + [
         gg.stat.smooth(gg.Aes(stat_y='ymax'), color='red', window=50),
         gg.geom.point(alpha=0.01),
         gg.title('low-alpha diamond prices by carat;'
@@ -130,5 +130,5 @@ def test_plot8():
 
 @plot_tester
 def test_plot9():
-    return gg.Plot(gg.data.diamonds, gg.Aes(x='color', y='price')) \
+    return gg.Plot(gg.data.diamonds_small, gg.Aes(x='color', y='price')) \
         + gg.geom.boxplot
