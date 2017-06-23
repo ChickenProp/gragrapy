@@ -12,3 +12,20 @@ def sorted_unique(series):
 def single_value_columns(df):
     """Return a list of the columns in `df` that have only one value."""
     return { col: df[col].iloc[0] for col in df if df[col].nunique() == 1 }
+
+class Params(dict):
+    def __init__(self, *args, **kwargs):
+        self.parent = args[0] if args else {}
+        super(Params, self).__init__(**kwargs)
+
+    def __getitem__(self, key):
+        if key in self:
+            return super(Params, self).__getitem__(key)
+        else:
+            return self.parent[key]
+
+    def get(self, key, default=None):
+        if key in self:
+            return super(Params, self).__getitem__(key)
+        else:
+            return self.parent.get(key, default)

@@ -11,6 +11,7 @@ from . import util, scale
 class Stat(LayerComponent):
     default_geom = 'point'
     default_aes = Aes()
+    default_params = util.Params()
 
     def transform(self, df, scales=None):
         grouped = df.groupby('group')

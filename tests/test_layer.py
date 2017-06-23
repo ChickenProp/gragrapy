@@ -6,6 +6,7 @@ import pandas.util.testing as pdtest
 import pytest
 
 from .context import gragrapy as gg
+from . import assert_data_equal
 Layer = gg.layer.Layer
 
 def mklayer(geom='point', stat='identity', **kwargs):
@@ -65,3 +66,20 @@ def test_map_df():
     pdtest.assert_frame_equal(layer.map_data(gg.Aes(x='foo')),
                               pd.DataFrame({'x': data.foo,
                                             'y': data.bar}))
+
+def test_add_param_data():
+    class TestLayerComponent(gg.layer.LayerComponent):
+        default_params = gg.util.Params(color='black', alpha=1)
+        data_params = {'color'}
+
+    data = pd.DataFrame({'x': range(10), 'color': range(10, 20)})
+
+    tlc = TestLayerComponent()
+    assert_data_equal(data, tlc.add_param_data(data))
+
+    tlc = TestLayerComponent(color='red', alpha=1)
+    assert_data_equal(data.assign(color='red'), tlc.add_param_data(data))
+
+    tlc = TestLayerComponent(alpha=1)
+    assert_data_equal(data.assign(color='black'),
+                      tlc.add_param_data(data.drop('color', axis=1)))

@@ -8,10 +8,12 @@ import matplotlib.lines as mlines
 
 from .layer import Layer, LayerComponent
 from .aes import Aes
+from .util import Params
 
 class Geom(LayerComponent):
     default_stat = 'identity'
     default_aes = Aes()
+    default_params = Params()
 
     def draw(self, ax, data):
         grouped = data.groupby('group')
@@ -34,38 +36,41 @@ class Geom(LayerComponent):
 
 
 class GeomPoint(Geom):
+    default_params = Params(color='black', alpha=1)
+    data_params = {'color'}
+
     def draw(self, ax, data):
-        color = self.params.get('color', data.get('color', 'black'))
-        alpha = self.params.get('alpha', 1)
-        ax.scatter(data['x'], data['y'], c=color, edgecolors='face',
-                   alpha=alpha)
+        data = self.add_param_data(data)
+
+        ax.scatter(data['x'], data['y'], c=data['color'], edgecolors='face',
+                   alpha=self.params['alpha'])
 point = GeomPoint
 
 class GeomLine(Geom):
-    # ax.plot doesn't support varying colors. To get that to work, I think I
-    # need something like
-    # http://matplotlib.org/examples/pylab_examples/multicolored_line.html
+    default_params = Params(color='black')
+    data_params = {'color'}
 
     def draw_group(self, ax, data):
+        data = self.add_param_data(data)
         data = data.sort_values('x')
-        color = self.params.get('color', data.get('color', 'black'))
 
         # We need segments to be a list of single-segment lines, i.e.
         # [ [p0, p1], [p1, p2], [p2, p3], ... ] where each pn is [xn, yn]
         points = np.array([data.x, data.y]).T.reshape(-1, 1, 2)
         segments = np.concatenate((points[:-1], points[1:]), axis=1)
 
-        lc = collections.LineCollection(segments, colors=color)
+        lc = collections.LineCollection(segments, colors=data['color'])
         ax.add_collection(lc)
 line = GeomLine
 
 class GeomRibbon(Geom):
-    def draw(self, ax, data):
-        alpha = self.params.get('alpha', 1)
-        color = self.params.get('color', data.get('color', 'black'))
+    default_params = Params(color='black', alpha=1)
+    data_params = {'color'}
 
+    def draw(self, ax, data):
+        data = self.add_param_data(data)
         ax.fill_between(data['x'], data['ymin'], data['ymax'],
-                        color=color, alpha=alpha)
+                        color=data['color'], alpha=self.params['alpha'])
 ribbon = GeomRibbon
 
 class GeomSmooth(Geom):
@@ -85,20 +90,17 @@ smooth = GeomSmooth
 
 class GeomBar(Geom):
     default_aes = Aes(width=Aes.const(1), ymin=Aes.const(0))
+    default_params = Params(color='black')
+    data_params = {'color'}
 
     def draw(self, ax, data):
-        if 'color' in self.params or 'color' not in data.columns:
-            has_const_color = True
-            const_color = self.params.get('color', 'black')
-        elif 'color' in data.columns:
-            has_const_color = False
+        data = self.add_param_data(data)
 
         for _, row in data.iterrows():
             x = row.x - row.width/2
             height = row.y - row.ymin
-            color = const_color if has_const_color else row.color
             ax.add_patch(patches.Rectangle((x, row.ymin), row.width, height,
-                                           fill=True, facecolor=color))
+                                           fill=True, facecolor=row.color))
 bar = GeomBar
 
 class GeomHist(GeomBar):

@@ -6,6 +6,7 @@ from collections import OrderedDict
 import six
 
 from .aes import Aes
+from .util import Params
 
 class Layer(object):
     """A `Layer` is a self-contained part of a plot.
@@ -82,7 +83,37 @@ class LayerComponent(object):
     def __init__(self, aes=None, data=None, **kwargs):
         self.aes = aes
         self.data = data
-        self.params = kwargs
+        self.params = Params(self.default_params, **kwargs)
+
+    def add_param_data(self, data):
+        """Copy items from `self.params` to `data`.
+
+        Only items named in `self.data_params` are copied. These items take
+        their final values from:
+
+        * `self.params`, if they were passed explicitly, or
+        * `data`, if they exist there, or
+        * `self.default_params`, otherwise.
+
+        Thus, `geom.point(color='red').draw(ax, data)` will ignore `data.color`;
+        but `geom.point().draw(ax, data)` will use `data.color` if it exists and
+        use its default color if not.
+
+        The difference between a default param and a default aes is whether or
+        not scales should be involved. Putting `color='black'` in a default aes
+        will cause a color scale to map 'black' to some other color that the
+        scale chooses for itself. Putting it in a default param means that a
+        scale will only map values found in the data.
+        """
+        overrides = { k: v for k,v in self.params.items()
+                      if k in self.data_params }
+        data = data.assign(**overrides)
+
+        defaults = { k: self.params[k] for k in self.data_params
+                     if k not in data.columns }
+        data = data.assign(**defaults)
+
+        return data
 
     def __eq__(self, other):
         return type(self) is type(other) and other.__dict__ == self.__dict__
