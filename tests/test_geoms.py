@@ -15,8 +15,8 @@ def test_make_layer():
     assert g.make_layer() == gg.layer.Layer(geom=g, stat='smooth',
                                             params={'stat': 'smooth'})
 
-    g = gg.geom.Geom(gg.Aes(x='foo'))
-    assert g.make_layer() == gg.layer.Layer(aes=gg.Aes(x='foo'), geom=g,
+    g = gg.geom.Geom(gg.aes(x='foo'))
+    assert g.make_layer() == gg.layer.Layer(aes=gg.aes(x='foo'), geom=g,
                                             stat='identity')
 
 def test_draw_inheritance():

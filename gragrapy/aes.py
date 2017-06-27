@@ -91,3 +91,4 @@ class Aes(object):
             ret.stat_mappings.update(aes.stat_mappings)
 
         return ret
+aes = Aes

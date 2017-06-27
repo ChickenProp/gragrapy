@@ -7,12 +7,12 @@ import matplotlib.patches as patches
 import matplotlib.lines as mlines
 
 from .layer import Layer, LayerComponent
-from .aes import Aes
+from .aes import aes
 from .util import Params
 
 class Geom(LayerComponent):
     default_stat = 'identity'
-    default_aes = Aes()
+    default_aes = aes()
     default_params = Params()
 
     def draw(self, ax, data):
@@ -89,7 +89,7 @@ class GeomSmooth(Geom):
 smooth = GeomSmooth
 
 class GeomBar(Geom):
-    default_aes = Aes(width=Aes.const(1), ymin=Aes.const(0))
+    default_aes = aes(width=aes.const(1), ymin=aes.const(0))
     default_params = Params(color='black')
     data_params = {'color'}
 
@@ -110,7 +110,7 @@ hist = GeomHist
 
 class GeomBoxplot(Geom):
     default_stat = 'boxplot'
-    default_aes = Aes(width=Aes.const(0.9))
+    default_aes = aes(width=aes.const(0.9))
 
     def draw_box(self, ax, row):
         x = row.x - row.width/2

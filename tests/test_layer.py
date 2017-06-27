@@ -22,16 +22,16 @@ def test_layer():
 
 def test_wrap_aes():
     class TestGeom(gg.geom.Geom):
-        default_aes = gg.Aes(a='A1', c='C1', e='E1', g='G1')
+        default_aes = gg.aes(a='A1', c='C1', e='E1', g='G1')
 
-    plot_aes = gg.Aes(b='B2', c='C2', f='F2', g='G2')
+    plot_aes = gg.aes(b='B2', c='C2', f='F2', g='G2')
 
     layer = mklayer(geom=TestGeom(),
-                    aes=gg.Aes(d='D3', e='E3', f='F3', g='G3'))
+                    aes=gg.aes(d='D3', e='E3', f='F3', g='G3'))
 
 
     assert layer.wrap_aes(plot_aes) \
-        == gg.Aes(a='A1', b='B2', c='C2', d='D3', e='E3', f='F3', g='G3')
+        == gg.aes(a='A1', b='B2', c='C2', d='D3', e='E3', f='F3', g='G3')
 
 def test_default_data():
     df1 = mkdf(3, 1, 'x')
@@ -46,24 +46,24 @@ def test_default_data():
 def test_map_df():
     layer = mklayer()
     with pytest.raises(ValueError):
-        layer.map_data(gg.Aes(x='foo'))
+        layer.map_data(gg.aes(x='foo'))
 
     data = mkdf(7, 2, 'foo bar')
-    pdtest.assert_frame_equal(layer.map_data(gg.Aes(x='foo'), data),
+    pdtest.assert_frame_equal(layer.map_data(gg.aes(x='foo'), data),
                               pd.DataFrame({'x': data.foo}))
 
     layer = mklayer(data=data)
-    pdtest.assert_frame_equal(layer.map_data(gg.Aes(x='foo')),
+    pdtest.assert_frame_equal(layer.map_data(gg.aes(x='foo')),
                               pd.DataFrame({'x': data.foo}))
 
     # ignore default data
-    pdtest.assert_frame_equal(layer.map_data(gg.Aes(x='foo'),
+    pdtest.assert_frame_equal(layer.map_data(gg.aes(x='foo'),
                                              mkdf(5, 2, 'foo bar')),
                               pd.DataFrame({'x': data.foo}))
 
     # take layer aes into account
-    layer = mklayer(data=data, aes=gg.Aes(y='bar'))
-    pdtest.assert_frame_equal(layer.map_data(gg.Aes(x='foo')),
+    layer = mklayer(data=data, aes=gg.aes(y='bar'))
+    pdtest.assert_frame_equal(layer.map_data(gg.aes(x='foo')),
                               pd.DataFrame({'x': data.foo,
                                             'y': data.bar}))
 

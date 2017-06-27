@@ -245,6 +245,7 @@ class Plot(object):
         copy = self._copy()
         copy += other
         return copy
+plot = Plot
 
 class PlotObj(object):
     def apply(self, plot):

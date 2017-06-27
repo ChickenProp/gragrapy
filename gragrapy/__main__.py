@@ -25,7 +25,7 @@ def parse_command_line(argv):
 
     args = parser.parse_args(argv)
     print(args)
-    args.aes = gg.Aes(**parse_kwargs(args.aes))
+    args.aes = gg.aes(**parse_kwargs(args.aes))
     args.geom = [ getattr(gg.geom, g[0])(**parse_kwargs(g[1:]))
                   for g in args.geom or [] ]
     args.stat = [ getattr(gg.stat, s[0])(**parse_kwargs(s[1:]))
@@ -41,7 +41,7 @@ def main():
     geoms = args.geom or gg.geom.point
     stats = args.stat or []
     facet = args.facet or []
-    (gg.Plot(data, args.aes) + geoms + stats + facet).show()
+    (gg.plot(data, args.aes) + geoms + stats + facet).show()
 
 if __name__ == '__main__':
     main()

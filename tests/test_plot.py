@@ -34,23 +34,23 @@ def test_show():
     # This is annoying to run every time. Ideally we'd have it only run if the
     # user specifically asks for all plots to be shown.
     return
-    (gg.Plot(gg.data.iris, gg.Aes(x='Petal.Length', y='Petal.Width')) + [
+    (gg.plot(gg.data.iris, gg.aes(x='Petal.Length', y='Petal.Width')) + [
         gg.geom.point
     ]).show()
 
 def test_save(tmpdir):
     filename = tmpdir.join('test.png')
-    (gg.Plot(gg.data.iris, gg.Aes(x='Petal.Length', y='Petal.Width')) + [
+    (gg.plot(gg.data.iris, gg.aes(x='Petal.Length', y='Petal.Width')) + [
         gg.geom.point
     ]).save(str(filename))
     assert filename.check()
 
 @plot_tester
 def test_plot1():
-    return gg.Plot(gg.data.ChickWeight,
-                   gg.Aes(x='Time', y='weight', color='Diet')) + [
+    return gg.plot(gg.data.ChickWeight,
+                   gg.aes(x='Time', y='weight', color='Diet')) + [
         gg.geom.point,
-        #gg.geom.line(gg.Aes(group='Chick')),
+        #gg.geom.line(gg.aes(group='Chick')),
         gg.stat.smooth,
         gg.title('Chick weights colored according to diet'
                  ' with smooth curves per diet'),
@@ -61,11 +61,11 @@ def test_plot2():
     fake_data = pd.DataFrame({'Sepal.Length': [7.0, 7.3],
                               'Sepal.Width': [4, 5],
                               'FakeCol': ['Fake', 'Fake2']})
-    return gg.Plot(iris, gg.Aes(x='Sepal.Length', y='Sepal.Width')) + [
+    return gg.plot(iris, gg.aes(x='Sepal.Length', y='Sepal.Width')) + [
         gg.geom.line(color='r'),
-        gg.geom.point(gg.Aes(color='Species')),
+        gg.geom.point(gg.aes(color='Species')),
         gg.stat.smooth,
-        gg.geom.point(gg.Aes(color='FakeCol'), data=fake_data),
+        gg.geom.point(gg.aes(color='FakeCol'), data=fake_data),
         gg.title('irises colored by species with a red line and a smooth\n'
                  'curve, plus two fake datapoints'),
     ]
@@ -80,7 +80,7 @@ def test_plot3():
 
 @plot_tester
 def test_plot4():
-    plot = gg.Plot(iris, gg.Aes(x='Sepal.Length', y='Sepal.Width',
+    plot = gg.plot(iris, gg.aes(x='Sepal.Length', y='Sepal.Width',
                                 color='Sepal.Length'))
     return plot + [
         gg.geom.line,
@@ -96,7 +96,7 @@ def test_plot5():
     data = pd.DataFrame({'xpos': 'a b c d e'.split(),
                          'height': [1, 7, 2, 5, 3],
                          'color': [True, True, False, False, True]})
-    return gg.Plot(data, gg.Aes(x='xpos', y='height', color='color')) + [
+    return gg.plot(data, gg.aes(x='xpos', y='height', color='color')) + [
         gg.geom.bar,
         gg.scale.x.discrete(labels='foo bar baz bletch quux'.split()),
         gg.scale.y.sqrt,
@@ -105,14 +105,14 @@ def test_plot5():
 
 @plot_tester
 def test_plot6():
-    return gg.Plot(gg.data.diamonds_small, gg.Aes(x='price')) + [
+    return gg.plot(gg.data.diamonds_small, gg.aes(x='price')) + [
         gg.geom.hist(bins=100),
         gg.title('histogram of diamond prices'),
     ]
 
 @plot_tester
 def test_plot7():
-    return gg.Plot(gg.data.anscombe, gg.Aes(x='x', y='y')) + [
+    return gg.plot(gg.data.anscombe, gg.aes(x='x', y='y')) + [
         gg.geom.point,
         gg.stat.smooth(method='lm', geom='line', color='red'),
         gg.facet('dataset'),
@@ -121,8 +121,8 @@ def test_plot7():
 
 @plot_tester
 def test_plot8():
-    return gg.Plot(gg.data.diamonds_small, gg.Aes(x='carat', y='price')) + [
-        gg.stat.smooth(gg.Aes(stat_y='ymax'), color='red', window=50),
+    return gg.plot(gg.data.diamonds_small, gg.aes(x='carat', y='price')) + [
+        gg.stat.smooth(gg.aes(stat_y='ymax'), color='red', window=50),
         gg.geom.point(alpha=0.01),
         gg.title('low-alpha diamond prices by carat;'
                  ' smooth curve at top of error bars'),
@@ -130,5 +130,5 @@ def test_plot8():
 
 @plot_tester
 def test_plot9():
-    return gg.Plot(gg.data.diamonds_small, gg.Aes(x='color', y='price')) \
+    return gg.plot(gg.data.diamonds_small, gg.aes(x='color', y='price')) \
         + gg.geom.boxplot

@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 
 from .layer import Layer, LayerComponent
-from .aes import Aes
+from .aes import aes
 from . import util, scale
 
 class Stat(LayerComponent):
     default_geom = 'point'
-    default_aes = Aes()
+    default_aes = aes()
     default_params = util.Params()
 
     def transform(self, df, scales=None):
@@ -81,7 +81,7 @@ smooth = StatSmooth
 
 class StatBin(Stat):
     default_geom = 'hist'
-    default_aes = Aes(stat_y='weight')
+    default_aes = aes(stat_y='weight')
 
     def transform_group(self, df, scales=None):
         if scales is not None:
