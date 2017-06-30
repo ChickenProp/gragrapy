@@ -41,3 +41,19 @@ text = p9.geom_text
 tile = p9.geom_tile
 violin = p9.geom_violin
 vline = p9.geom_vline
+
+def _make_geom(*args, **kwargs):
+    name = args[0]
+    args = args[1:]
+
+    if isinstance(name, p9.geoms.geom.geom):
+        # returning an existing instance, can't pass it params
+        assert not args and not kwargs
+        return name
+
+    if isinstance(name, type) and issubclass(name, p9.geoms.geom.geom):
+        cls = name
+    else:
+        cls = globals()[name]
+
+    return cls(*args, **kwargs)

@@ -84,3 +84,21 @@ class y(object):
     reverse = p9.scale_y_reverse
     sqrt = p9.scale_y_sqrt
     timedelta = p9.scale_y_timedelta
+
+def _make_scale(*args, **kwargs):
+    aes = args[0]
+    args = args[1:]
+
+    if isinstance(aes, p9.scales.scale.scale):
+        # returning an existing instance, can't pass it params
+        assert not args and not kwargs
+        return aes
+
+    if isinstance(aes, type) and issubclass(name, p9.scales.scale.scale):
+        cls = name
+    else:
+        name = args[0]
+        args = args[1:]
+        cls = getattr(globals()[aes], name)
+
+    return cls(*args, **kwargs)

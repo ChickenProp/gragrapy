@@ -4,6 +4,7 @@ from __future__ import (absolute_import, print_function,
 import os
 
 import plotnine as p9
+from . import geom, stat, scale
 
 class Plot(object):
     def __init__(self, *args, **kwargs):
@@ -40,6 +41,21 @@ class Plot(object):
             return self + other()
         else:
             return Plot._from_p9(self.p9plot + other)
+
+    def geom(self, *args, **kwargs):
+        return self + geom._make_geom(*args, **kwargs)
+
+    def stat(self, *args, **kwargs):
+        return self + stat._make_stat(*args, **kwargs)
+
+    def scale(self, *args, **kwargs):
+        return self + scale._make_scale(*args, **kwargs)
+
+    def facet(self, *args, **kwargs):
+        return self + p9.facet_wrap(*args, **kwargs)
+
+    def title(self, title):
+        return self + p9.ggtitle(title)
 
     @staticmethod
     def _from_p9(p9plot):

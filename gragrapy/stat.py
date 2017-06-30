@@ -21,3 +21,19 @@ summary = p9.stat_summary
 summary_bin = p9.stat_summary_bin
 unique = p9.stat_unique
 ydensity = p9.stat_ydensity
+
+def _make_stat(*args, **kwargs):
+    name = args[0]
+    args = args[1:]
+
+    if isinstance(name, p9.stats.stat.stat):
+        # returning an existing instance, can't pass it params
+        assert not args and not kwargs
+        return name
+
+    if isinstance(name, type) and issubclass(name, p9.stats.stat.stat):
+        cls = name
+    else:
+        cls = globals()[name]
+
+    return cls(*args, **kwargs)

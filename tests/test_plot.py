@@ -47,8 +47,7 @@ def test_save(tmpdir):
 @plot_tester
 def test_plot1():
     return gg.plot(gg.data.ChickWeight,
-                   gg.aes(x='Time', y='weight', color='Diet')) + [
-        gg.geom.point,
+                   gg.aes(x='Time', y='weight', color='Diet')).geom('point') + [
         #gg.geom.line(gg.aes(group='Chick')),
         gg.stat.smooth,
         gg.title('Chick weights colored according to diet'
@@ -60,14 +59,13 @@ def test_plot2():
     fake_data = pd.DataFrame({'Sepal.Length': [7.0, 7.3],
                               'Sepal.Width': [4, 5],
                               'FakeCol': ['Fake', 'Fake2']})
-    return gg.plot(gg.data.iris, gg.aes(x='Sepal.Length', y='Sepal.Width')) + [
-        gg.geom.line(color='r'),
-        gg.geom.point(gg.aes(color='Species')),
-        gg.stat.smooth,
-        gg.geom.point(gg.aes(color='FakeCol'), data=fake_data),
-        gg.title('irises colored by species with a red line and a smooth\n'
-                 'curve, plus two fake datapoints'),
-    ]
+    return (gg.plot(gg.data.iris, gg.aes(x='Sepal.Length', y='Sepal.Width'))
+              .geom('line', color='r')
+              .geom(gg.geom.point(gg.aes(color='Species')))
+              .stat('smooth')
+              .geom('point', gg.aes(color='FakeCol'), data=fake_data)
+              .title('irises colored by species with a red line and a smooth\n'
+                     'curve, plus two fake datapoints'))
 
 @pytest.mark.xfail
 @plot_tester
@@ -96,12 +94,11 @@ def test_plot5():
     data = pd.DataFrame({'xpos': 'a b c d e'.split(),
                          'height': [1, 7, 2, 5, 3],
                          'color': [True, True, False, False, True]})
-    return gg.plot(data, gg.aes(x='xpos', y='height', fill='color')) + [
-        gg.geom.bar(stat='identity'),
-        gg.scale.x.discrete(labels='foo bar baz bletch quux'.split()),
-        gg.scale.y.sqrt,
-        gg.title('fake data, discrete x axis, sqrt y axis'),
-    ]
+    return (gg.plot(data, gg.aes(x='xpos', y='height', fill='color'))
+              .geom('bar', stat='identity')
+              .scale('x', 'discrete', labels='foo bar baz bletch quux'.split())
+              .scale('y', 'sqrt')
+              .title('fake data, discrete x axis, sqrt y axis'))
 
 @plot_tester
 def test_plot6():
@@ -112,12 +109,11 @@ def test_plot6():
 
 @plot_tester
 def test_plot7():
-    return gg.plot(gg.data.anscombe, gg.aes(x='x', y='y')) + [
-        gg.geom.point,
-        gg.stat.smooth(method='lm', geom='line', color='red'),
-        gg.facet('dataset'),
-        gg.title("Anscombe's quartet with linear regression lines"),
-    ]
+    return (gg.plot(gg.data.anscombe, gg.aes(x='x', y='y'))
+              .geom('point')
+              .stat('smooth', method='lm', geom='line', color='red')
+              .facet('dataset')
+              .title("Anscombe's quartet with linear regression lines"))
 
 @pytest.mark.xfail
 @plot_tester
