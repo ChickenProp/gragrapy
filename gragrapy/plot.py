@@ -4,7 +4,7 @@ from __future__ import (absolute_import, print_function,
 import os
 
 import plotnine as p9
-from . import geom, stat, scale
+from . import geom, stat, scale, coord
 
 class Plot(object):
     def __init__(self, *args, **kwargs):
@@ -17,8 +17,11 @@ class Plot(object):
         self.p9plot.save(*args, **kwargs)
 
     def __str__(self):
+        return '<gragrapy.plot.Plot>'
+
+    def __repr__(self):
         self.show()
-        return repr(self)
+        return str(self)
 
     def __iadd__(self, other):
         if isinstance(other, list):
@@ -42,6 +45,9 @@ class Plot(object):
         else:
             return Plot._from_p9(self.p9plot + other)
 
+    def aes(self, *args, **kwargs):
+        return self + p9.aes(*args, **kwargs)
+
     def geom(self, *args, **kwargs):
         return self + geom._make_geom(*args, **kwargs)
 
@@ -54,8 +60,22 @@ class Plot(object):
     def facet(self, *args, **kwargs):
         return self + p9.facet_wrap(*args, **kwargs)
 
+    def facet_grid(self, *args, **kwargs):
+        return self + p9.facet_grid(*args, **kwargs)
+
+    def coord(self, *args, **kwargs):
+        return self + coord._make_coord(*args, **kwargs)
+
     def title(self, title):
         return self + p9.ggtitle(title)
+
+    def labels(self, title=None, x=None, y=None):
+        labs = [
+            p9.ggtitle(title) if title is not None else None,
+            p9.xlab(x) if x is not None else None,
+            p9.ylab(y) if y is not None else None
+        ]
+        return self + [ l for l in labs if l is not None ]
 
     @staticmethod
     def _from_p9(p9plot):

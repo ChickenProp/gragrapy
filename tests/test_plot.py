@@ -133,4 +133,4 @@ def test_plot8():
 @plot_tester
 def test_plot9():
     return gg.plot(gg.data.diamonds_small, gg.aes(x='color', y='price')) \
-        + gg.geom.boxplot
+        + gg.geom.boxplot + gg.coord.flip
